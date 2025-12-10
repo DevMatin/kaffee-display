@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -11,6 +12,7 @@ export function AdminSidebar() {
     { href: '/admin/kaffees', label: 'Kaffees', icon: '☕' },
     { href: '/admin/regionen', label: 'Regionen', icon: '🌍' },
     { href: '/admin/aromen', label: 'Aromen', icon: '🌸' },
+    { href: '/admin/aromen/kategorien', label: 'Aromen-Kategorien', icon: '🗂️' },
     { href: '/admin/zubereitungen', label: 'Zubereitungen', icon: '🍵' },
     { href: '/admin/import', label: 'Import', icon: '⬆️' },
   ];
@@ -38,6 +40,11 @@ export function AdminSidebar() {
             );
           })}
         </nav>
+        <form method="post" action="/admin/logout" className="mt-6">
+          <Button type="submit" variant="outline" size="sm" className="w-full">
+            Abmelden
+          </Button>
+        </form>
       </div>
     </aside>
   );

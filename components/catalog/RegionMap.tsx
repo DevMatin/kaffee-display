@@ -97,12 +97,20 @@ export function RegionMap({ latitude, longitude, regionName, country, regions }:
           center: coordinates[0],
           zoom: 5,
           scrollWheelZoom: false,
+          attributionControl: false,
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
         }).addTo(map);
+
+        const attributionEl = map.attributionControl?.getContainer();
+        attributionEl?.querySelectorAll('a').forEach((anchor) => {
+          anchor.setAttribute('tabIndex', '-1');
+          (anchor as HTMLAnchorElement).style.pointerEvents = 'none';
+          (anchor as HTMLAnchorElement).style.cursor = 'default';
+        });
 
         const accentColor = getComputedStyle(document.documentElement)
           .getPropertyValue('--color-accent-warm')

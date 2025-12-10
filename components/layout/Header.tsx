@@ -34,12 +34,6 @@ export function Header() {
               >
                 Regionen
               </Link>
-              <Link
-                href="/admin"
-                className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
-              >
-                Admin
-              </Link>
             </nav>
             <button
               onClick={toggleTheme}
@@ -131,13 +125,6 @@ export function Header() {
               className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
             >
               Regionen
-            </Link>
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
-            >
-              Admin
             </Link>
           </nav>
         )}

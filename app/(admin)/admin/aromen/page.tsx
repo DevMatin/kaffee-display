@@ -11,9 +11,14 @@ export default async function AdminAromenPage() {
     <PageContainer>
       <div className="flex items-center justify-between mb-8">
         <h1>Aromen verwalten</h1>
-        <Link href="/admin/aromen/neu">
-          <Button>Neues Aroma</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/aromen/kategorien">
+            <Button variant="outline">Kategorien</Button>
+          </Link>
+          <Link href="/admin/aromen/neu">
+            <Button>Neues Aroma</Button>
+          </Link>
+        </div>
       </div>
       <FlavorNoteTable flavorNotes={flavorNotes} />
     </PageContainer>

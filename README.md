@@ -23,7 +23,10 @@ Erstelle eine `.env.local` Datei:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+ADMIN_PASSWORD=starkes_admin_passwort
 ```
+
+Der Adminbereich prüft das Passwort gegen `ADMIN_PASSWORD`, setze also in allen Umgebungen dasselbe sichere Geheimnis.
 
 3. Datenbank-Schema einrichten:
 Führe das SQL-Schema aus `Supabase/schema.md` in deiner Supabase-Datenbank aus.

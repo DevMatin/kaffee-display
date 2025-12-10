@@ -23,6 +23,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(coffee?.image_url || null);
@@ -207,6 +208,69 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
     }
   };
 
+  const handleAiFill = async (target?: 'short_description' | 'description' | 'flavor_notes' | 'all') => {
+    if (!formData.name) {
+      alert('Bitte zuerst einen Namen eingeben');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/admin/generate-coffee-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          country: formData.country,
+          roast_level: formData.roast_level,
+          processing_method: formData.processing_method,
+          varietal: formData.varietal,
+          short_description: formData.short_description,
+          description: formData.description,
+          target_field: target && target !== 'all' ? target : undefined,
+          availableFlavorNotes: flavorNotes.map((fn) => ({
+            name: fn.name,
+            category: fn.category?.name || null,
+            parent: fn.category?.parent?.name || null,
+          })),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || 'KI-Antwort fehlgeschlagen');
+      }
+
+      const data = await res.json();
+      setFormData((prev) => ({
+        ...prev,
+        short_description: target && target !== 'all' && target !== 'short_description' ? prev.short_description : data.short_description ?? prev.short_description,
+        description: target && target !== 'all' && target !== 'description' ? prev.description : data.description ?? prev.description,
+      }));
+
+      const shouldUpdateFlavor = !target || target === 'all' || target === 'flavor_notes';
+      if (shouldUpdateFlavor && Array.isArray(data.flavor_notes) && data.flavor_notes.length > 0) {
+        const normalize = (val: string) =>
+          val
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/\p{Diacritic}/gu, '')
+            .trim();
+        const wanted = new Set(data.flavor_notes.map((n: string) => normalize(n)));
+        const matches = flavorNotes
+          .filter((fn) => wanted.has(normalize(fn.name)))
+          .map((fn) => fn.id);
+        if (matches.length > 0) {
+          setSelectedFlavorNotes(Array.from(new Set(matches)));
+        }
+      }
+    } catch (error: any) {
+      alert(error?.message || 'KI konnte nicht ausgeführt werden');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!coffee) return;
 
@@ -236,17 +300,37 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
               onChange={(value) => setFormData({ ...formData, name: value })}
               required
             />
-            <Input
-              label="Kurzbeschreibung"
-              value={formData.short_description}
-              onChange={(value) => setFormData({ ...formData, short_description: value })}
-            />
-            <Textarea
-              label="Beschreibung"
-              value={formData.description}
-              onChange={(value) => setFormData({ ...formData, description: value })}
-              rows={6}
-            />
+            <div className="flex items-center gap-3">
+              <Input
+                label="Kurzbeschreibung"
+                value={formData.short_description}
+                onChange={(value) => setFormData({ ...formData, short_description: value })}
+              />
+              <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('short_description')} disabled={loading || aiLoading}>
+                {aiLoading ? '…' : 'KI'}
+              </Button>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <Textarea
+                  label="Beschreibung"
+                  value={formData.description}
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  rows={6}
+                />
+              </div>
+              <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('description')} disabled={loading || aiLoading} className="mt-7">
+                {aiLoading ? '…' : 'KI'}
+              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button type="button" variant="outline" onClick={() => handleAiFill('all')} disabled={loading || aiLoading}>
+                {aiLoading ? 'KI füllt aus...' : 'KI: alle Felder'}
+              </Button>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Nutzt Name, Herkunft, Röstung usw. und schlägt Noten vor.
+              </p>
+            </div>
             <div>
               <label className="block text-sm text-[var(--color-brown-light)] mb-3 font-medium">
                 Hauptbild
@@ -408,7 +492,12 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
-          <h2 className="mb-6">Geschmacksnoten</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2>Geschmacksnoten</h2>
+            <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('flavor_notes')} disabled={loading || aiLoading}>
+              {aiLoading ? '…' : 'KI Vorschlag'}
+            </Button>
+          </div>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {(() => {
               const notesByCategory = new Map<string, { category: FlavorCategory | null; notes: FlavorNote[] }>();

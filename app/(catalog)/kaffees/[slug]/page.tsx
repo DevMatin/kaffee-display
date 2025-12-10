@@ -10,6 +10,8 @@ import { RegionMap } from '@/components/catalog/RegionMap';
 import { FlavorWheelSection } from '@/components/catalog/FlavorWheelSection';
 import { getCoffeeBySlug, getFlavorWheel } from '@/lib/queries';
 
+export const revalidate = 3600; // ISR: 1h, unterstützt SW-Cache für Detailseiten
+
 export default async function CoffeeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const coffee = await getCoffeeBySlug(slug);

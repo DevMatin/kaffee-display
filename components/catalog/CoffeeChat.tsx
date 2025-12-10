@@ -23,9 +23,18 @@ type ChatMessage = {
 
 interface CoffeeChatProps {
   preferences: Preferences;
+  onRecommendations?: (slugs: string[]) => void;
 }
 
-export function CoffeeChat({ preferences }: CoffeeChatProps) {
+const quickPrompts = [
+  'Ich mag fruchtige Filterkaffees (V60/Aeropress)',
+  'Milder Espresso, nussig & schokoladig',
+  'Helle Röstung, Pour Over, gern afrikanische Herkunft',
+  'Stark & kräftig für Vollautomat',
+  'Säurearm, viel Süße, wenig Bitterkeit',
+];
+
+export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +48,13 @@ export function CoffeeChat({ preferences }: CoffeeChatProps) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
     }
   }, [messages.length]);
+
+  function handleReset() {
+    setMessages([]);
+    setInput('');
+    setError('');
+    onRecommendations?.([]);
+  }
 
   async function handleSend() {
     if (!input.trim()) return;
@@ -71,6 +87,12 @@ export function CoffeeChat({ preferences }: CoffeeChatProps) {
       };
 
       setMessages((prev) => [...prev, assistant]);
+      if (onRecommendations) {
+        const slugs = (data.recommendations || [])
+          .map((r: { slug?: string | null }) => r.slug)
+          .filter(Boolean) as string[];
+        onRecommendations(slugs);
+      }
       setInput('');
     } catch (err: any) {
       setError(err?.message || 'Chat fehlgeschlagen');
@@ -81,9 +103,19 @@ export function CoffeeChat({ preferences }: CoffeeChatProps) {
 
   return (
     <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-sm sticky top-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[var(--color-espresso)]">Barista-Chat</h2>
-        <span className="text-sm text-[var(--color-text-secondary)]">Empfehlungen in Echtzeit</span>
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-[var(--color-espresso)]">Barista-Chat</h2>
+          <span className="text-sm text-[var(--color-text-secondary)]">Empfehlungen in Echtzeit</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="text-sm px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-espresso)] hover:border-[var(--color-brown)] transition"
+          disabled={loading}
+        >
+          Neu starten
+        </button>
       </div>
 
       <div className="space-y-3 mb-4">
@@ -93,6 +125,18 @@ export function CoffeeChat({ preferences }: CoffeeChatProps) {
           rows={4}
           placeholder="Beschreibe, was du magst (z.B. fruchtig, Espresso, Kolumbien)..."
         />
+        <div className="flex flex-wrap gap-2">
+          {quickPrompts.map((text) => (
+            <button
+              key={text}
+              type="button"
+              onClick={() => setInput(text)}
+              className="text-xs px-3 py-2 rounded-full border border-[var(--color-border)] bg-[var(--color-cream)] hover:border-[var(--color-brown)] transition"
+            >
+              {text}
+            </button>
+          ))}
+        </div>
         <Button onClick={handleSend} disabled={loading}>
           {loading ? 'Suche passende Kaffees...' : 'Empfehlung anfordern'}
         </Button>

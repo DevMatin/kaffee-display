@@ -114,6 +114,76 @@ export async function getFlavorNotes(): Promise<FlavorNote[]> {
   }
 }
 
+export async function getFlavorCategories(): Promise<FlavorCategory[]> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Fetching flavor categories');
+
+    const { data, error } = await supabase
+      .from('flavor_categories')
+      .select('*')
+      .order('level', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching flavor categories', error);
+      throw error;
+    }
+
+    const categories: FlavorCategory[] = (data || []).map((cat: FlavorCategory) => ({ ...cat }));
+    const map = new Map<string, FlavorCategory>();
+    categories.forEach((cat) => map.set(cat.id, cat));
+    categories.forEach((cat) => {
+      cat.parent = cat.parent_id ? map.get(cat.parent_id) || null : null;
+    });
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('flavor_categories', 'select', duration, { count: categories.length });
+
+    return categories;
+  } catch (error) {
+    logger.error('Failed to fetch flavor categories', error);
+    throw error;
+  }
+}
+
+export async function getFlavorCategoryById(id: string): Promise<FlavorCategory | null> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Fetching flavor category by id', { id });
+
+    const { data, error } = await supabase.from('flavor_categories').select('*').eq('id', id).single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      logger.error('Error fetching flavor category by id', error);
+      throw error;
+    }
+
+    let category: FlavorCategory | null = data || null;
+    if (category?.parent_id) {
+      const { data: parent, error: parentError } = await supabase
+        .from('flavor_categories')
+        .select('*')
+        .eq('id', category.parent_id)
+        .single();
+      if (!parentError && parent) {
+        category = { ...category, parent };
+      }
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('flavor_categories', 'select_one', duration, { id });
+
+    return category;
+  } catch (error) {
+    logger.error('Failed to fetch flavor category by id', error);
+    throw error;
+  }
+}
+
 export async function getBrewMethods(): Promise<BrewMethod[]> {
   const startTime = performance.now();
   try {

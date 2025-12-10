@@ -17,6 +17,7 @@ export function FlavorNoteTable({ flavorNotes }: FlavorNoteTableProps) {
           <thead>
             <tr className="border-b-2 border-[var(--color-beige)]">
               <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Name</th>
+              <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Kategorie</th>
               <th className="text-right py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Aktionen</th>
             </tr>
           </thead>
@@ -27,6 +28,9 @@ export function FlavorNoteTable({ flavorNotes }: FlavorNoteTableProps) {
                 className="border-b border-[var(--color-beige)] hover:bg-[var(--color-beige-light)] transition-colors"
               >
                 <td className="py-4 px-4 text-[var(--color-text-primary)]">{note.name}</td>
+                <td className="py-4 px-4 text-[var(--color-text-secondary)]">
+                  {note.category?.parent ? `${note.category.parent.name} → ${note.category.name}` : note.category?.name || '–'}
+                </td>
                 <td className="py-4 px-4">
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/aromen/${note.id}`}>

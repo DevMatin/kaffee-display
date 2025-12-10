@@ -1,7 +1,7 @@
 import { supabase, supabaseAdmin } from './supabase';
 import { logger } from './logger';
 import { deleteImage } from './storage';
-import type { Coffee, Region, FlavorNote, BrewMethod } from './types';
+import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory } from './types';
 
 function generateSlug(name: string): string {
   return name
@@ -383,6 +383,78 @@ export async function deleteFlavorNote(id: string): Promise<void> {
     logger.query('flavor_notes', 'delete', duration, { id });
   } catch (error) {
     logger.error('Failed to delete flavor note', error);
+    throw error;
+  }
+}
+
+export async function createFlavorCategory(categoryData: Partial<FlavorCategory>): Promise<FlavorCategory> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Creating flavor category', { name: categoryData.name });
+
+    const { data, error } = await supabase.from('flavor_categories').insert(categoryData).select().single();
+
+    if (error) {
+      logger.error('Error creating flavor category', error);
+      throw error;
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('flavor_categories', 'insert', duration, { id: data.id });
+
+    return data;
+  } catch (error) {
+    logger.error('Failed to create flavor category', error);
+    throw error;
+  }
+}
+
+export async function updateFlavorCategory(
+  id: string,
+  categoryData: Partial<FlavorCategory>
+): Promise<FlavorCategory> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Updating flavor category', { id });
+
+    const { data, error } = await supabase
+      .from('flavor_categories')
+      .update(categoryData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error updating flavor category', error);
+      throw error;
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('flavor_categories', 'update', duration, { id });
+
+    return data;
+  } catch (error) {
+    logger.error('Failed to update flavor category', error);
+    throw error;
+  }
+}
+
+export async function deleteFlavorCategory(id: string): Promise<void> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Deleting flavor category', { id });
+
+    const { error } = await supabase.from('flavor_categories').delete().eq('id', id);
+
+    if (error) {
+      logger.error('Error deleting flavor category', error);
+      throw error;
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('flavor_categories', 'delete', duration, { id });
+  } catch (error) {
+    logger.error('Failed to delete flavor category', error);
     throw error;
   }
 }
