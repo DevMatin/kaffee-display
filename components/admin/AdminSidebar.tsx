@@ -40,7 +40,7 @@ export function AdminSidebar() {
             );
           })}
         </nav>
-        <form method="post" action="/admin/logout" className="mt-6">
+        <form method="post" action="/api/logout" className="mt-6">
           <Button type="submit" variant="outline" size="sm" className="w-full">
             Abmelden
           </Button>
