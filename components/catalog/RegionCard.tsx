@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { Card } from '@/components/ui/Card';
+import { Link } from '@/lib/i18n-utils';
 import type { Region } from '@/lib/types';
 
 interface RegionCardProps {

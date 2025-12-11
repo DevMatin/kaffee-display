@@ -1,8 +1,9 @@
 'use client';
 
+import { useTranslations, useLocale } from 'next-intl';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import type { Region, FlavorNote, BrewMethod } from '@/lib/types';
+import type { Region, BrewMethod } from '@/lib/types';
 
 interface FilterBarProps {
   searchQuery: string;
@@ -29,20 +30,26 @@ export function FilterBar({
   regions,
   brewMethods,
 }: FilterBarProps) {
+  const locale = useLocale();
+  const t = useTranslations('filter');
+  
+  console.log('FilterBar Locale:', locale);
+  console.log('FilterBar Translation for search:', t('search'));
+
   const roastOptions = [
-    { value: '', label: 'Alle Röstgrade' },
-    { value: 'light', label: 'Light' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'dark', label: 'Dark' },
+    { value: '', label: t('allRoasts') },
+    { value: 'light', label: t('light') },
+    { value: 'medium', label: t('medium') },
+    { value: 'dark', label: t('dark') },
   ];
 
   const regionOptions = [
-    { value: '', label: 'Alle Regionen' },
+    { value: '', label: t('allRegions') },
     ...regions.map((r) => ({ value: r.id, label: `${r.region_name}, ${r.country}` })),
   ];
 
   const brewMethodOptions = [
-    { value: '', label: 'Alle Zubereitungen' },
+    { value: '', label: t('allBrewMethods') },
     ...brewMethods.map((bm) => ({ value: bm.id, label: bm.name })),
   ];
 
@@ -50,25 +57,25 @@ export function FilterBar({
     <div className="bg-[var(--color-surface)] rounded-2xl p-6 shadow-sm mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Input
-          label="Suche"
+          label={t('search')}
           value={searchQuery}
           onChange={onSearchChange}
-          placeholder="Kaffee suchen..."
+          placeholder={t('searchPlaceholder')}
         />
         <Select
-          label="Region"
+          label={t('region')}
           value={selectedRegion}
           onChange={onRegionChange}
           options={regionOptions}
         />
         <Select
-          label="Röstgrad"
+          label={t('roast')}
           value={selectedRoast}
           onChange={onRoastChange}
           options={roastOptions}
         />
         <Select
-          label="Zubereitung"
+          label={t('brewMethod')}
           value={selectedBrewMethod}
           onChange={onBrewMethodChange}
           options={brewMethodOptions}

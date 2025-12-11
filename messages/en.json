@@ -1,0 +1,51 @@
+{
+  "common": {
+    "brand": "Coffee Catalog",
+    "loading": "Loading...",
+    "noImage": "No image",
+    "back": "Back"
+  },
+  "navigation": {
+    "coffees": "Coffees",
+    "regions": "Regions",
+    "browseCoffees": "Browse coffees",
+    "exploreRegions": "Explore regions"
+  },
+  "home": {
+    "welcome": "Welcome to the Coffee Catalog",
+    "heroBody": "Discover our selection of specialty coffees from regions around the world."
+  },
+  "coffee": {
+    "roastLevel": "Roast level",
+    "region": "Region",
+    "viewCoffee": "View coffee",
+    "recommended": "Recommended by chat",
+    "reset": "Reset",
+    "noneFound": "No coffees found."
+  },
+  "region": {
+    "title": "Regions",
+    "discover": "Discover region"
+  },
+  "filter": {
+    "search": "Search",
+    "searchPlaceholder": "Search by coffee or region",
+    "region": "Region",
+    "roast": "Roast",
+    "brewMethod": "Brew method",
+    "allRoasts": "All roasts",
+    "allRegions": "All regions",
+    "allBrewMethods": "All brew methods",
+    "light": "Light",
+    "medium": "Medium",
+    "dark": "Dark"
+  },
+  "theme": {
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode"
+  },
+  "notFound": {
+    "message": "Page not found."
+  }
+}
+

@@ -1,3 +1,4 @@
+const withNextIntl = require('next-intl/plugin')('./i18n.ts');
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
@@ -108,7 +109,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 })
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const baseConfig = {
   turbopack: {},
   images: {
     remotePatterns: [
@@ -128,5 +129,5 @@ const nextConfig = {
   },
 }
 
-module.exports = withPWA(nextConfig)
+module.exports = withPWA(withNextIntl(baseConfig))
 

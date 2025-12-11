@@ -1,0 +1,51 @@
+{
+  "common": {
+    "brand": "Kaffee Katalog",
+    "loading": "Laden...",
+    "noImage": "Kein Bild",
+    "back": "Zurück"
+  },
+  "navigation": {
+    "coffees": "Kaffees",
+    "regions": "Regionen",
+    "browseCoffees": "Kaffees durchstöbern",
+    "exploreRegions": "Regionen erkunden"
+  },
+  "home": {
+    "welcome": "Willkommen im Kaffee Katalog",
+    "heroBody": "Entdecke unsere Auswahl an Specialty Coffees aus verschiedenen Regionen der Welt."
+  },
+  "coffee": {
+    "roastLevel": "Röstgrad",
+    "region": "Region",
+    "viewCoffee": "Kaffee ansehen",
+    "recommended": "Empfohlen vom Chat",
+    "reset": "Zurücksetzen",
+    "noneFound": "Keine Kaffees gefunden."
+  },
+  "region": {
+    "title": "Regionen",
+    "discover": "Region erkunden"
+  },
+  "filter": {
+    "search": "Suche",
+    "searchPlaceholder": "Suche nach Kaffee oder Region",
+    "region": "Region",
+    "roast": "Röstgrad",
+    "brewMethod": "Zubereitung",
+    "allRoasts": "Alle Röstgrade",
+    "allRegions": "Alle Regionen",
+    "allBrewMethods": "Alle Zubereitungen",
+    "light": "Hell",
+    "medium": "Mittel",
+    "dark": "Dunkel"
+  },
+  "theme": {
+    "toLight": "Zu hellem Modus wechseln",
+    "toDark": "Zu dunklem Modus wechseln"
+  },
+  "notFound": {
+    "message": "Die Seite wurde nicht gefunden."
+  }
+}
+

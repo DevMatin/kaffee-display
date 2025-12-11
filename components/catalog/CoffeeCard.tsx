@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { SafeImage } from '@/components/ui/SafeImage';
+import { Link } from '@/lib/i18n-utils';
 import type { Coffee } from '@/lib/types';
 
 interface CoffeeCardProps {
@@ -11,6 +12,8 @@ interface CoffeeCardProps {
 }
 
 export function CoffeeCard({ coffee }: CoffeeCardProps) {
+  const t = useTranslations('common');
+  const filterT = useTranslations('filter');
   const roastColors: Record<string, string> = {
     light: 'var(--color-light-roast)',
     medium: 'var(--color-medium-roast)',
@@ -18,6 +21,14 @@ export function CoffeeCard({ coffee }: CoffeeCardProps) {
   };
 
   const roastColor = coffee.roast_level ? roastColors[coffee.roast_level.toLowerCase()] : 'var(--color-brown)';
+  
+  const getRoastLabel = (roastLevel: string) => {
+    const key = roastLevel.toLowerCase();
+    if (key === 'light' || key === 'medium' || key === 'dark') {
+      return filterT(key);
+    }
+    return roastLevel;
+  };
 
   return (
     <Link href={`/kaffees/${coffee.slug || coffee.id}`}>
@@ -34,7 +45,7 @@ export function CoffeeCard({ coffee }: CoffeeCardProps) {
           </div>
         ) : (
           <div className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden bg-[var(--color-beige-light)] flex items-center justify-center">
-            <span className="text-[var(--color-text-muted)] text-sm">Kein Bild</span>
+            <span className="text-[var(--color-text-muted)] text-sm">{t('noImage')}</span>
           </div>
         )}
         <h3 className="mb-2">{coffee.name}</h3>
@@ -51,7 +62,7 @@ export function CoffeeCard({ coffee }: CoffeeCardProps) {
                 backgroundColor: roastColor,
               }}
             >
-              {coffee.roast_level}
+              {getRoastLabel(coffee.roast_level)}
             </Badge>
           )}
           {coffee.region && (

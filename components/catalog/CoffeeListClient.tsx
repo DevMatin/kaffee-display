@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { CoffeeCard } from './CoffeeCard';
 import { FilterBar } from './FilterBar';
 import { CoffeeChat } from './CoffeeChat';
@@ -18,6 +19,7 @@ export function CoffeeListClient({ initialCoffees, regions, brewMethods }: Coffe
   const [selectedRoast, setSelectedRoast] = useState('');
   const [selectedBrewMethod, setSelectedBrewMethod] = useState('');
   const [recommended, setRecommended] = useState<Coffee[]>([]);
+  const t = useTranslations('coffee');
 
   const filteredCoffees = useMemo(() => {
     let filtered = [...initialCoffees];
@@ -79,13 +81,13 @@ export function CoffeeListClient({ initialCoffees, regions, brewMethods }: Coffe
         {recommended.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--color-espresso)]">Empfohlen vom Chat</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-espresso)]">{t('recommended')}</h3>
               <button
                 type="button"
                 onClick={() => setRecommended([])}
                 className="text-sm text-[var(--color-brown)] underline"
               >
-                Zurücksetzen
+                {t('reset')}
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -98,7 +100,7 @@ export function CoffeeListClient({ initialCoffees, regions, brewMethods }: Coffe
 
         {filteredCoffees.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-[var(--color-text-secondary)]">Keine Kaffees gefunden.</p>
+            <p className="text-[var(--color-text-secondary)]">{t('noneFound')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">

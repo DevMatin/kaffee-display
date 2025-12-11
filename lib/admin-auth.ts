@@ -17,14 +17,25 @@ export function getAdminAuthToken() {
 }
 
 export function isValidAdminToken(token: string | undefined) {
-  if (!token) {
+  if (!token || !process.env.ADMIN_PASSWORD) {
     return false;
   }
-  return token === getAdminAuthToken();
+  try {
+    return token === getAdminAuthToken();
+  } catch {
+    return false;
+  }
 }
 
 export function isValidAdminPassword(password: string) {
-  return password === getAdminPassword();
+  if (!process.env.ADMIN_PASSWORD) {
+    return false;
+  }
+  try {
+    return password === getAdminPassword();
+  } catch {
+    return false;
+  }
 }
 
 export const ADMIN_AUTH_COOKIE = {

@@ -1,12 +1,17 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useTheme } from '@/components/ThemeProvider';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { Link } from '@/lib/i18n-utils';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const commonT = useTranslations('common');
+  const t = useTranslations('navigation');
+  const themeT = useTranslations('theme');
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
@@ -17,7 +22,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-semibold text-[var(--color-espresso)]">
-            Kaffee Katalog
+            {commonT('brand')}
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -26,19 +31,22 @@ export function Header() {
                 href="/kaffees"
                 className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
               >
-                Kaffees
+                {t('coffees')}
               </Link>
               <Link
                 href="/regionen"
                 className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
               >
-                Regionen
+                {t('regions')}
               </Link>
             </nav>
+            <LanguageSwitcher />
             <button
               onClick={toggleTheme}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-hover)] transition-colors"
-              aria-label={resolvedTheme === 'dark' ? 'Zu hellem Modus wechseln' : 'Zu dunklem Modus wechseln'}
+              aria-label={
+                resolvedTheme === 'dark' ? themeT('toLight', { default: 'Zu hellem Modus wechseln' }) : themeT('toDark', { default: 'Zu dunklem Modus wechseln' })
+              }
             >
               {resolvedTheme === 'dark' ? (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[var(--color-text-primary)]">
@@ -64,7 +72,9 @@ export function Header() {
             <button
               onClick={toggleTheme}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--color-hover)] transition-colors"
-              aria-label={resolvedTheme === 'dark' ? 'Zu hellem Modus wechseln' : 'Zu dunklem Modus wechseln'}
+              aria-label={
+                resolvedTheme === 'dark' ? themeT('toLight', { default: 'Zu hellem Modus wechseln' }) : themeT('toDark', { default: 'Zu dunklem Modus wechseln' })
+              }
             >
               {resolvedTheme === 'dark' ? (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[var(--color-text-primary)]">
@@ -117,15 +127,16 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
             >
-              Kaffees
+              {t('coffees')}
             </Link>
             <Link
               href="/regionen"
               onClick={() => setMobileMenuOpen(false)}
               className="text-[var(--color-text-secondary)] hover:text-[var(--color-espresso)] transition-colors"
             >
-              Regionen
+              {t('regions')}
             </Link>
+            <LanguageSwitcher />
           </nav>
         )}
       </div>

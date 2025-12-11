@@ -87,6 +87,16 @@ export interface Coffee {
   processing_methods?: ProcessingMethod[];
   varietals?: Varietal[];
   images?: CoffeeImage[];
+  translations?: CoffeeTranslation[];
+}
+
+export interface CoffeeTranslation {
+  id?: string;
+  coffee_id: string;
+  locale: string;
+  name: string | null;
+  short_description: string | null;
+  description: string | null;
 }
 
 export interface CoffeeRegion {
@@ -129,6 +139,14 @@ export interface FlavorCategory {
   color_hex: string | null;
   created_at: string;
   parent?: FlavorCategory | null;
+  translations?: FlavorCategoryTranslation[];
+}
+
+export interface FlavorCategoryTranslation {
+  id?: string;
+  flavor_category_id: string;
+  locale: string;
+  name: string | null;
 }
 
 export interface FlavorWheelNode {
@@ -140,6 +158,45 @@ export interface FlavorWheelNode {
   value?: number;
   labelVisible?: boolean;
   children?: FlavorWheelNode[];
+}
+
+export interface RegionTranslation {
+  id?: string;
+  region_id: string;
+  locale: string;
+  region_name: string | null;
+  description: string | null;
+}
+
+export interface FlavorNoteTranslation {
+  id?: string;
+  flavor_id: string;
+  locale: string;
+  name: string | null;
+  description: string | null;
+}
+
+export interface BrewMethodTranslation {
+  id?: string;
+  brew_id: string;
+  locale: string;
+  name: string | null;
+}
+
+export interface ProcessingMethodTranslation {
+  id?: string;
+  processing_method_id: string;
+  locale: string;
+  name: string | null;
+  description: string | null;
+}
+
+export interface VarietalTranslation {
+  id?: string;
+  varietal_id: string;
+  locale: string;
+  name: string | null;
+  description: string | null;
 }
 
 

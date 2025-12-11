@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -7,10 +7,27 @@ import { Button } from '@/components/ui/Button';
 import { CoffeeCard } from '@/components/catalog/CoffeeCard';
 import { RegionMap } from '@/components/catalog/RegionMap';
 import { getRegionById, getCoffees } from '@/lib/queries';
+import { Link } from '@/lib/i18n-utils';
+import { locales } from '@/i18n';
 
-export default async function RegionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const [region, allCoffees] = await Promise.all([getRegionById(id), getCoffees()]);
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export const dynamic = 'force-dynamic';
+export const prerender = false;
+
+export default async function RegionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}) {
+  const { id, locale } = await params;
+  const [region, allCoffees, tCommon] = await Promise.all([
+    getRegionById(id, locale),
+    getCoffees(locale),
+    getTranslations({ locale, namespace: 'common' }),
+  ]);
 
   if (!region) {
     notFound();
@@ -22,7 +39,7 @@ export default async function RegionDetailPage({ params }: { params: Promise<{ i
     <PageContainer>
       <Link href="/regionen">
         <Button variant="outline" size="sm" className="mb-6">
-          ← Zurück zu Regionen
+          ← {tCommon('back')}
         </Button>
       </Link>
 
@@ -31,13 +48,7 @@ export default async function RegionDetailPage({ params }: { params: Promise<{ i
           <Card>
             {region.emblem_url && (
               <div className="relative w-32 h-32 mx-auto mb-6">
-                <Image
-                  src={region.emblem_url}
-                  alt={region.region_name}
-                  fill
-                  className="object-contain"
-                  sizes="128px"
-                />
+                <Image src={region.emblem_url} alt={region.region_name} fill className="object-contain" sizes="128px" />
               </div>
             )}
             <h1 className="mb-4 text-center">{region.region_name}</h1>
@@ -73,5 +84,4 @@ export default async function RegionDetailPage({ params }: { params: Promise<{ i
     </PageContainer>
   );
 }
-
 

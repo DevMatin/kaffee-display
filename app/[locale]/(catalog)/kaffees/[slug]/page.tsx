@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -9,13 +9,29 @@ import { AltitudeDisplay } from '@/components/catalog/AltitudeDisplay';
 import { RegionMap } from '@/components/catalog/RegionMap';
 import { FlavorWheelSection } from '@/components/catalog/FlavorWheelSection';
 import { getCoffeeBySlug, getFlavorWheel } from '@/lib/queries';
+import { Link } from '@/lib/i18n-utils';
+import { locales } from '@/i18n';
 
-export const revalidate = 3600; // ISR: 1h, unterstützt SW-Cache für Detailseiten
+export const revalidate = 3600;
 
-export default async function CoffeeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const coffee = await getCoffeeBySlug(slug);
-  const flavorWheelData = await getFlavorWheel();
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
+
+export const dynamic = 'force-dynamic';
+export const prerender = false;
+
+export default async function CoffeeDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string; locale: string }>;
+}) {
+  const { slug, locale } = await params;
+  const coffee = await getCoffeeBySlug(slug, locale);
+  const flavorWheelData = await getFlavorWheel(locale);
+  const t = await getTranslations({ locale, namespace: 'coffee' });
+  const common = await getTranslations({ locale, namespace: 'common' });
+  const filterT = await getTranslations({ locale, namespace: 'filter' });
 
   if (!coffee) {
     notFound();
@@ -28,6 +44,14 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
   };
 
   const roastColor = coffee.roast_level ? roastColors[coffee.roast_level.toLowerCase()] : 'var(--color-brown)';
+  
+  const getRoastLabel = (roastLevel: string) => {
+    const key = roastLevel.toLowerCase();
+    if (key === 'light' || key === 'medium' || key === 'dark') {
+      return filterT(key);
+    }
+    return roastLevel;
+  };
 
   const mainImage = coffee.image_url || coffee.images?.[0]?.image_url;
   const additionalImages = coffee.images?.filter((img) => img.image_url !== mainImage) || [];
@@ -36,7 +60,7 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
     <PageContainer>
       <Link href="/kaffees">
         <Button variant="outline" size="sm" className="mb-6">
-          ← Zurück zur Übersicht
+          ← {common('back')}
         </Button>
       </Link>
 
@@ -81,14 +105,14 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
 
           {coffee.roast_level && (
             <div className="mb-6">
-              <span className="text-sm text-[var(--color-text-muted)] block mb-2">Röstgrad</span>
+              <span className="text-sm text-[var(--color-text-muted)] block mb-2">{t('roastLevel')}</span>
               <Badge
                 color="primary"
                 style={{
                   backgroundColor: roastColor,
                 }}
               >
-                {coffee.roast_level}
+                {getRoastLabel(coffee.roast_level)}
               </Badge>
             </div>
           )}
@@ -101,7 +125,7 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
               return (
                 <>
                   <Card padding="md">
-                    <span className="text-sm text-[var(--color-text-muted)] block mb-2">Regionen</span>
+                    <span className="text-sm text-[var(--color-text-muted)] block mb-2">{t('region')}</span>
                     <RegionMap
                       regions={regions.map((r) => ({
                         latitude: r.latitude,
