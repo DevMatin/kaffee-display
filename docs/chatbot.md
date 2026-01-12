@@ -17,3 +17,5 @@
 - Anfrage ohne `OPENAI_API_KEY` → 500.
 - Typische Anfrage: `"fruchtig, pour over, Kolumbien"` mit gesetztem Brew-Method-Filter.
 
+
+

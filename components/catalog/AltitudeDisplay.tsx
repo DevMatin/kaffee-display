@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/Card';
+import { useTranslations } from 'next-intl';
 
 interface AltitudeDisplayProps {
   altitudeMin: number;
@@ -12,6 +13,7 @@ const MAX_ALTITUDE = 3000;
 const MIN_ALTITUDE = 0;
 
 export function AltitudeDisplay({ altitudeMin, altitudeMax }: AltitudeDisplayProps) {
+  const misc = useTranslations('misc');
   const [minDisplay, setMinDisplay] = useState(altitudeMin);
   const [maxDisplay, setMaxDisplay] = useState(altitudeMax);
   const [isVisible, setIsVisible] = useState(false);
@@ -84,7 +86,7 @@ export function AltitudeDisplay({ altitudeMin, altitudeMax }: AltitudeDisplayPro
 
   return (
     <Card padding="md" ref={containerRef}>
-      <span className="text-sm text-[var(--color-text-muted)] block mb-4">Höhe</span>
+      <span className="text-sm text-[var(--color-text-muted)] block mb-4">{misc('height')}</span>
       <div className="relative h-64 w-full">
         <svg
           viewBox="0 0 400 300"

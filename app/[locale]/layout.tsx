@@ -7,7 +7,6 @@ import { Footer } from "@/components/layout/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { defaultLocale, locales } from "@/i18n";
-import "../../styles/globals.css";
 
 export const dynamic = "force-dynamic";
 

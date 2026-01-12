@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import type { FlavorCategory, FlavorNote } from '@/lib/types';
 import { createFlavorNote, updateFlavorNote, deleteFlavorNote } from '@/lib/mutations';
+import { useTranslations } from 'next-intl';
 
 interface FlavorNoteFormProps {
   flavorNote?: FlavorNote;
@@ -16,6 +17,8 @@ interface FlavorNoteFormProps {
 }
 
 export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormProps) {
+  const t = useTranslations('admin.form');
+  const tablesT = useTranslations('admin.tables');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -44,7 +47,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
     };
 
     return [
-      { value: '', label: 'Keine Kategorie' },
+      { value: '', label: tablesT('uncategorized') },
       ...categories
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -76,7 +79,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
       router.refresh();
     } catch (error) {
       console.error('Error saving flavor note:', error);
-      alert('Fehler beim Speichern des Aromas');
+      alert(t('saveFlavorError'));
     } finally {
       setLoading(false);
     }
@@ -92,7 +95,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
       router.refresh();
     } catch (error) {
       console.error('Error deleting flavor note:', error);
-      alert('Fehler beim Löschen des Aromas');
+      alert(t('deleteFlavorError'));
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -102,10 +105,10 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <h2 className="mb-6">Aroma-Informationen</h2>
+        <h2 className="mb-6">{t('flavorNotes')}</h2>
         <div className="space-y-4">
           <Input
-            label="Name *"
+            label={t('nameRequired')}
             value={formData.name}
             onChange={(value) => setFormData({ ...formData, name: value })}
             required
@@ -117,13 +120,13 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
             placeholder="https://..."
           />
           <Textarea
-            label="Beschreibung"
+            label={t('description')}
             value={formData.description}
             onChange={(value) => setFormData({ ...formData, description: value })}
             rows={4}
           />
           <Select
-            label="Kategorie"
+            label={tablesT('category')}
             value={formData.category_id || ''}
             onChange={(value) => setFormData({ ...formData, category_id: value })}
             options={categoryOptions}
@@ -142,7 +145,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={loading}
                 >
-                  Löschen
+              {t('delete')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
@@ -152,7 +155,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
                     onClick={handleDelete}
                     disabled={loading}
                   >
-                    Wirklich löschen?
+                {t('confirmDelete')}
                   </Button>
                   <Button
                     type="button"
@@ -160,7 +163,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={loading}
                   >
-                    Abbrechen
+                {t('cancel')}
                   </Button>
                 </div>
               )}
@@ -168,7 +171,7 @@ export function FlavorNoteForm({ flavorNote, categories = [] }: FlavorNoteFormPr
           )}
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Speichern...' : flavorNote ? 'Aktualisieren' : 'Erstellen'}
+      {loading ? t('saveLoading') : flavorNote ? t('update') : t('create')}
         </Button>
       </div>
     </form>

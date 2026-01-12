@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -5,6 +6,7 @@ import Link from 'next/link';
 import { getCoffees, getRegions, getFlavorNotes, getBrewMethods } from '@/lib/queries';
 
 export default async function AdminDashboard() {
+  const t = await getTranslations('admin');
   const [coffees, regions, flavorNotes, brewMethods] = await Promise.all([
     getCoffees(),
     getRegions(),
@@ -13,15 +15,15 @@ export default async function AdminDashboard() {
   ]);
 
   const stats = [
-    { label: 'Kaffees', count: coffees.length, href: '/admin/kaffees', icon: '☕' },
-    { label: 'Regionen', count: regions.length, href: '/admin/regionen', icon: '🌍' },
-    { label: 'Aromen', count: flavorNotes.length, href: '/admin/aromen', icon: '🌸' },
-    { label: 'Zubereitungen', count: brewMethods.length, href: '/admin/zubereitungen', icon: '🍵' },
+    { label: t('coffees'), count: coffees.length, href: '/admin/kaffees', icon: '☕' },
+    { label: t('regions'), count: regions.length, href: '/admin/regionen', icon: '🌍' },
+    { label: t('flavors'), count: flavorNotes.length, href: '/admin/aromen', icon: '🌸' },
+    { label: t('brewMethods'), count: brewMethods.length, href: '/admin/zubereitungen', icon: '🍵' },
   ];
 
   return (
     <PageContainer>
-      <h1 className="mb-8">Dashboard</h1>
+      <h1 className="mb-8">{t('dashboard')}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
           <Card key={stat.href} padding="lg">
@@ -32,20 +34,20 @@ export default async function AdminDashboard() {
             <h3 className="mb-4">{stat.label}</h3>
             <Link href={stat.href}>
               <Button variant="outline" size="sm" className="w-full">
-                Verwalten
+                {t('manage')}
               </Button>
             </Link>
           </Card>
         ))}
       </div>
       <Card>
-        <h2 className="mb-4">Schnellzugriff</h2>
+        <h2 className="mb-4">{t('quickAccess')}</h2>
         <div className="flex flex-wrap gap-4">
           <Link href="/admin/kaffees/neu">
-            <Button>Neuer Kaffee</Button>
+            <Button>{t('newCoffee')}</Button>
           </Link>
           <Link href="/admin/regionen">
-            <Button variant="secondary">Neue Region</Button>
+            <Button variant="secondary">{t('newRegion')}</Button>
           </Link>
         </div>
       </Card>

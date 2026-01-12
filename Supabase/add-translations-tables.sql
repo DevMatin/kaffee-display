@@ -71,3 +71,5 @@ CREATE TABLE IF NOT EXISTS public.flavor_categories_translations (
     UNIQUE (flavor_category_id, locale)
 );
 
+
+

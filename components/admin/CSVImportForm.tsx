@@ -3,10 +3,12 @@
 import { useState, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { useTranslations } from 'next-intl';
 
 type PreviewRow = Record<string, string>;
 
 export function CSVImportForm() {
+  const t = useTranslations('csvImport');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,10 +47,10 @@ export function CSVImportForm() {
       const res = await fetch('/api/import-csv', { method: 'POST', body: form });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || 'Import fehlgeschlagen');
-      setMessage(`Import fertig: ${json.successCount} ok, ${json.errorCount} Fehler`);
+      setMessage(t('result', { successCount: json.successCount, errorCount: json.errorCount }));
       setErrors(json.errors || []);
     } catch (err: any) {
-      setMessage(err?.message || 'Fehler beim Import');
+      setMessage(err?.message || t('importError'));
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export function CSVImportForm() {
         onDrop={onDrop}
         onClick={() => document.getElementById('csv-input')?.click()}
       >
-        <p className="font-medium">CSV per Drag & Drop ablegen oder klicken zum Auswählen</p>
+        <p className="font-medium">{t('drop')}</p>
         {file && <p className="text-sm mt-2 text-[var(--color-text-secondary)]">{file.name}</p>}
       </div>
       <input
@@ -75,7 +77,7 @@ export function CSVImportForm() {
 
       {preview.length > 0 && (
         <div className="mb-4">
-          <h3 className="mb-2">Vorschau (erste Zeilen)</h3>
+          <h3 className="mb-2">{t('preview')}</h3>
           <div className="overflow-auto border border-[var(--color-border)] rounded-lg">
             <table className="min-w-full text-sm">
               <thead>
@@ -105,21 +107,21 @@ export function CSVImportForm() {
 
       <div className="flex items-center gap-3">
         <Button onClick={onSubmit} disabled={!file || loading}>
-          {loading ? 'Import läuft...' : 'Import starten'}
+          {loading ? t('importRunning') : t('importStart')}
         </Button>
         {message && <span className="text-sm text-[var(--color-text-secondary)]">{message}</span>}
       </div>
 
       {errors.length > 0 && (
         <div className="mt-4 text-sm text-red-600">
-          <p>Fehler:</p>
+          <p>{t('errors')}</p>
           <ul className="list-disc list-inside">
             {errors.slice(0, 10).map((e, idx) => (
               <li key={idx}>
-                Zeile {e.row}: {e.message}
+                {t('line', { row: e.row })}: {e.message}
               </li>
             ))}
-            {errors.length > 10 && <li>… weitere {errors.length - 10} Fehler</li>}
+            {errors.length > 10 && <li>{t('moreErrors', { count: errors.length - 10 })}</li>}
           </ul>
         </div>
       )}

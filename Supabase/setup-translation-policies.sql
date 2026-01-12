@@ -57,3 +57,5 @@ create policy "anon select flavor_categories_translations"
   to anon, authenticated
   using (true);
 
+
+

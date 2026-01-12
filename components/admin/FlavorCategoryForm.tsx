@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { FlavorCategory } from '@/lib/types';
 import { createFlavorCategory, updateFlavorCategory, deleteFlavorCategory } from '@/lib/mutations';
+import { useTranslations } from 'next-intl';
 
 interface FlavorCategoryFormProps {
   category?: FlavorCategory;
@@ -15,6 +16,8 @@ interface FlavorCategoryFormProps {
 }
 
 export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormProps) {
+  const t = useTranslations('admin.form');
+  const tablesT = useTranslations('admin.tables');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -28,7 +31,7 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
 
   const parentOptions = useMemo(() => {
     const currentId = category?.id;
-    const options = [{ value: '', label: 'Keine übergeordnete Kategorie' }];
+    const options = [{ value: '', label: t('noParent') }];
     categories
       .filter((c) => c.id !== currentId)
       .forEach((c) => {
@@ -60,7 +63,7 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
       router.refresh();
     } catch (error) {
       console.error('Error saving flavor category:', error);
-      alert('Fehler beim Speichern der Kategorie');
+      alert(t('saveCategoryError'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +79,7 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
       router.refresh();
     } catch (error) {
       console.error('Error deleting flavor category:', error);
-      alert('Fehler beim Löschen der Kategorie');
+      alert(t('deleteCategoryError'));
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -86,16 +89,16 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <h2 className="mb-6">Kategorie-Informationen</h2>
+        <h2 className="mb-6">{t('categoryInfo')}</h2>
         <div className="space-y-4">
           <Input
-            label="Name *"
+            label={t('nameRequired')}
             value={formData.name}
             onChange={(value) => setFormData({ ...formData, name: value })}
             required
           />
           <Select
-            label="Ebene *"
+            label={`${t('level')} *`}
             value={formData.level}
             onChange={(value) => {
               const nextLevel = value;
@@ -106,22 +109,22 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
               }));
             }}
             options={[
-              { value: '1', label: '1 (Hauptebene)' },
-              { value: '2', label: '2 (Unterkategorie)' },
-              { value: '3', label: '3 (Detailkategorie)' },
+              { value: '1', label: t('level1') },
+              { value: '2', label: t('level2') },
+              { value: '3', label: t('level3') },
             ]}
             required
           />
           {formData.level !== '1' && (
             <Select
-              label="Überkategorie"
+              label={t('parentCategory')}
               value={formData.parent_id}
               onChange={(value) => setFormData({ ...formData, parent_id: value })}
               options={parentOptions}
             />
           )}
           <Input
-            label="Farbe (HEX, optional)"
+            label={t('colorHex')}
             value={formData.color_hex || ''}
             onChange={(value) => setFormData({ ...formData, color_hex: value })}
             placeholder="#aabbcc"
@@ -140,12 +143,12 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={loading}
                 >
-                  Löschen
+              {t('delete')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
                   <Button type="button" variant="outline" onClick={handleDelete} disabled={loading}>
-                    Wirklich löschen?
+                {t('confirmDelete')}
                   </Button>
                   <Button
                     type="button"
@@ -153,7 +156,7 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={loading}
                   >
-                    Abbrechen
+                {t('cancel')}
                   </Button>
                 </div>
               )}
@@ -161,7 +164,7 @@ export function FlavorCategoryForm({ category, categories }: FlavorCategoryFormP
           )}
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Speichern...' : category ? 'Aktualisieren' : 'Erstellen'}
+      {loading ? t('saveLoading') : category ? t('update') : t('create')}
         </Button>
       </div>
     </form>

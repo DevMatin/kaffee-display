@@ -44,3 +44,5 @@ SELECT id, 'de', name
 FROM public.flavor_categories
 ON CONFLICT (flavor_category_id, locale) DO NOTHING;
 
+
+

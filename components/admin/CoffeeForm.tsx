@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card';
 import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory } from '@/lib/types';
 import { createCoffee, updateCoffee, manageCoffeeFlavorNotes, manageCoffeeBrewMethods, deleteCoffee } from '@/lib/mutations';
 import { uploadImage, deleteImage } from '@/lib/storage';
+import { useTranslations } from 'next-intl';
 
 interface CoffeeFormProps {
   coffee?: Coffee;
@@ -20,6 +21,7 @@ interface CoffeeFormProps {
 }
 
 export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: CoffeeFormProps) {
+  const t = useTranslations('admin.form');
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
   );
 
   const regionOptions = [
-    { value: '', label: 'Keine Region' },
+    { value: '', label: t('noRegion') },
     ...regions.map((r) => ({ value: r.id, label: `${r.region_name}, ${r.country}` })),
   ];
 
@@ -80,7 +82,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
 
   const processFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Bitte wählen Sie eine Bilddatei aus');
+      alert(t('selectImage'));
       return;
     }
     setSelectedFile(file);
@@ -292,48 +294,48 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
     <form onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
-          <h2 className="mb-6">Grundinformationen</h2>
+          <h2 className="mb-6">{t('basicInfo')}</h2>
           <div className="space-y-4">
             <Input
-              label="Name *"
+              label={t('nameRequired')}
               value={formData.name}
               onChange={(value) => setFormData({ ...formData, name: value })}
               required
             />
             <div className="flex items-center gap-3">
               <Input
-                label="Kurzbeschreibung"
+                label={t('shortDescription')}
                 value={formData.short_description}
                 onChange={(value) => setFormData({ ...formData, short_description: value })}
               />
               <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('short_description')} disabled={loading || aiLoading}>
-                {aiLoading ? '…' : 'KI'}
+                {aiLoading ? '…' : t('aiShort')}
               </Button>
             </div>
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <Textarea
-                  label="Beschreibung"
+                  label={t('description')}
                   value={formData.description}
                   onChange={(value) => setFormData({ ...formData, description: value })}
                   rows={6}
                 />
               </div>
               <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('description')} disabled={loading || aiLoading} className="mt-7">
-                {aiLoading ? '…' : 'KI'}
+                {aiLoading ? '…' : t('aiDescription')}
               </Button>
             </div>
             <div className="flex items-center gap-4">
               <Button type="button" variant="outline" onClick={() => handleAiFill('all')} disabled={loading || aiLoading}>
-                {aiLoading ? 'KI füllt aus...' : 'KI: alle Felder'}
+                {aiLoading ? t('aiAllLoading') : t('aiAll')}
               </Button>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                Nutzt Name, Herkunft, Röstung usw. und schlägt Noten vor.
+                {t('aiHint')}
               </p>
             </div>
             <div>
               <label className="block text-sm text-[var(--color-brown-light)] mb-3 font-medium">
-                Hauptbild
+                {t('mainImage')}
               </label>
               {imagePreview && (
                 <div className="mb-4 relative w-full h-48 rounded-xl overflow-hidden border-2 border-[var(--color-beige)]">
@@ -366,7 +368,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                 <div className="space-y-4">
                   <div className="text-[var(--color-text-secondary)]">
                     <p className="text-lg font-medium mb-2">
-                      {isDragging ? 'Bild hier ablegen' : 'Bild per Drag & Drop hier ablegen'}
+                      {isDragging ? t('dropNow') : t('dropHere')}
                     </p>
                     <p className="text-sm">oder</p>
                   </div>
@@ -377,7 +379,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                       onClick={() => fileInputRef.current?.click()}
                       disabled={loading}
                     >
-                      {selectedFile ? 'Bild ändern' : 'Bild auswählen'}
+                      {selectedFile ? t('changeImage') : t('selectImage')}
                     </Button>
                     {imagePreview && (
                       <Button
@@ -392,14 +394,14 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                         }}
                         disabled={loading}
                       >
-                        Zurücksetzen
+                        {t('resetImage')}
                       </Button>
                     )}
                   </div>
                 </div>
               </div>
               <p className="mt-4 text-sm text-[var(--color-text-secondary)]">
-                Oder URL eingeben:
+                {t('orUrl')}
               </p>
               <Input
                 label=""
@@ -418,45 +420,45 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         </Card>
 
         <Card>
-          <h2 className="mb-6">Details</h2>
+          <h2 className="mb-6">{t('details')}</h2>
           <div className="space-y-4">
             <Input
-              label="Röstgrad"
+              label={t('roastLevel')}
               value={formData.roast_level}
               onChange={(value) => setFormData({ ...formData, roast_level: value })}
             />
             <Input
-              label="Verarbeitungsmethode"
+              label={t('processingMethod')}
               value={formData.processing_method}
               onChange={(value) => setFormData({ ...formData, processing_method: value })}
             />
             <Input
-              label="Varietät"
+              label={t('varietal')}
               value={formData.varietal}
               onChange={(value) => setFormData({ ...formData, varietal: value })}
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Höhe min (m)"
+                label={t('altitudeMin')}
                 type="number"
                 value={formData.altitude_min}
                 onChange={(value) => setFormData({ ...formData, altitude_min: value })}
               />
               <Input
-                label="Höhe max (m)"
+                label={t('altitudeMax')}
                 type="number"
                 value={formData.altitude_max}
                 onChange={(value) => setFormData({ ...formData, altitude_max: value })}
               />
             </div>
             <Input
-              label="Land"
+              label={t('country')}
               value={formData.country}
               onChange={(value) => setFormData({ ...formData, country: value })}
             />
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="block text-sm text-[var(--color-brown-light)] font-medium">Regionen</span>
+                <span className="block text-sm text-[var(--color-brown-light)] font-medium">{t('regions')}</span>
                 <Button type="button" variant="outline" size="sm" onClick={addRegionRow} disabled={loading}>
                   +
                 </Button>
@@ -493,9 +495,9 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card>
           <div className="flex items-center justify-between mb-6">
-            <h2>Geschmacksnoten</h2>
+            <h2>{t('flavorNotes')}</h2>
             <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('flavor_notes')} disabled={loading || aiLoading}>
-              {aiLoading ? '…' : 'KI Vorschlag'}
+              {aiLoading ? '…' : t('aiFlavor')}
             </Button>
           </div>
           <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -574,7 +576,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                   {uncategorized.length > 0 && (
                     <div className="space-y-2">
                       <h3 className="text-sm font-semibold text-[var(--color-brown)] mb-2 sticky top-0 bg-white py-1">
-                        Sonstiges
+                        {t('other')}
                       </h3>
                       <div className="space-y-1 ml-2">
                         {uncategorized.map((note) => (
@@ -604,7 +606,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         </Card>
 
         <Card>
-          <h2 className="mb-6">Zubereitungsmethoden</h2>
+          <h2 className="mb-6">{t('brewMethods')}</h2>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {brewMethods.map((method) => (
               <label key={method.id} className="flex items-center gap-3 cursor-pointer hover:bg-[var(--color-beige-light)] p-2 rounded-lg transition-colors">
@@ -638,7 +640,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={loading}
                 >
-                  Löschen
+                  {t('delete')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
@@ -648,7 +650,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                     onClick={handleDelete}
                     disabled={loading}
                   >
-                    Wirklich löschen?
+                    {t('confirmDelete')}
                   </Button>
                   <Button
                     type="button"
@@ -656,7 +658,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={loading}
                   >
-                    Abbrechen
+                    {t('cancel')}
                   </Button>
                 </div>
               )}
@@ -664,7 +666,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
           )}
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Speichern...' : coffee ? 'Aktualisieren' : 'Erstellen'}
+          {loading ? t('saveLoading') : coffee ? t('update') : t('create')}
         </Button>
       </div>
     </form>

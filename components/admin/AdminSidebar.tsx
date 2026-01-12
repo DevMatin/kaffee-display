@@ -2,25 +2,27 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const t = useTranslations('admin');
 
   const navItems = [
-    { href: '/admin', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/kaffees', label: 'Kaffees', icon: '☕' },
-    { href: '/admin/regionen', label: 'Regionen', icon: '🌍' },
-    { href: '/admin/aromen', label: 'Aromen', icon: '🌸' },
-    { href: '/admin/aromen/kategorien', label: 'Aromen-Kategorien', icon: '🗂️' },
-    { href: '/admin/zubereitungen', label: 'Zubereitungen', icon: '🍵' },
-    { href: '/admin/import', label: 'Import', icon: '⬆️' },
+    { href: '/admin', label: t('dashboard'), icon: '📊' },
+    { href: '/admin/kaffees', label: t('coffees'), icon: '☕' },
+    { href: '/admin/regionen', label: t('regions'), icon: '🌍' },
+    { href: '/admin/aromen', label: t('flavors'), icon: '🌸' },
+    { href: '/admin/aromen/kategorien', label: t('flavorCategories'), icon: '🗂️' },
+    { href: '/admin/zubereitungen', label: t('brewMethods'), icon: '🍵' },
+    { href: '/admin/import', label: t('import'), icon: '⬆️' },
   ];
 
   return (
     <aside className="w-64 bg-[var(--color-surface)] border-r-2 border-[var(--color-border)] min-h-screen sticky top-0">
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-[var(--color-espresso)] mb-8">Admin</h2>
+        <h2 className="text-xl font-semibold text-[var(--color-espresso)] mb-8">{t('pages.adminArea')}</h2>
         <nav className="space-y-2">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -42,7 +44,7 @@ export function AdminSidebar() {
         </nav>
         <form method="post" action="/api/logout" className="mt-6">
           <Button type="submit" variant="outline" size="sm" className="w-full">
-            Abmelden
+            {t('logout')}
           </Button>
         </form>
       </div>

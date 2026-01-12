@@ -1,11 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import type { FlavorWheelNode } from '@/lib/types';
+
+function FlavorWheelLoading() {
+  const misc = useTranslations('misc');
+  return <div className="w-full h-[600px] flex items-center justify-center">{misc('loadingFlavorWheel')}</div>;
+}
 
 const D3FlavorWheel = dynamic(() => import('./D3FlavorWheel').then((mod) => ({ default: mod.D3FlavorWheel })), {
   ssr: false,
-  loading: () => <div className="w-full h-[600px] flex items-center justify-center">Lade Flavor Wheel...</div>,
+  loading: () => <FlavorWheelLoading />,
 });
 
 interface FlavorWheelSectionProps {

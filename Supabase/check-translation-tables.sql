@@ -41,3 +41,5 @@ where table_schema = 'public'
   and table_name like '%_translations'
 order by table_name, grantee, privilege_type;
 
+
+

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { Link } from '@/lib/i18n-utils';
+import { useTranslations } from 'next-intl';
 
 type Preferences = {
   regionId?: string;
@@ -26,20 +27,14 @@ interface CoffeeChatProps {
   onRecommendations?: (slugs: string[]) => void;
 }
 
-const quickPrompts = [
-  'Ich mag fruchtige Filterkaffees (V60/Aeropress)',
-  'Milder Espresso, nussig & schokoladig',
-  'Helle Röstung, Pour Over, gern afrikanische Herkunft',
-  'Stark & kräftig für Vollautomat',
-  'Säurearm, viel Süße, wenig Bitterkeit',
-];
-
 export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) {
+  const t = useTranslations('chat');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
+  const quickPrompts = t.raw('quickPrompts') as string[];
 
   useEffect(() => {
     // Nur die Chat-Box scrollen, nicht die ganze Seite
@@ -76,13 +71,13 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`Antwort fehlgeschlagen: ${errText}`);
+        throw new Error(`${t('fetchError')}: ${errText}`);
       }
 
       const data = await res.json();
       const assistant: ChatMessage = {
         role: 'assistant',
-        content: data.answer || 'Keine Antwort erhalten.',
+        content: data.answer || t('noAnswer'),
         recommendations: data.recommendations || [],
       };
 
@@ -95,7 +90,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
       }
       setInput('');
     } catch (err: any) {
-      setError(err?.message || 'Chat fehlgeschlagen');
+      setError(err?.message || t('failed'));
     } finally {
       setLoading(false);
     }
@@ -105,8 +100,8 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
     <div className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-5 shadow-sm sticky top-6">
       <div className="flex items-center justify-between mb-4 gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--color-espresso)]">Barista-Chat</h2>
-          <span className="text-sm text-[var(--color-text-secondary)]">Empfehlungen in Echtzeit</span>
+          <h2 className="text-lg font-semibold text-[var(--color-espresso)]">{t('title')}</h2>
+          <span className="text-sm text-[var(--color-text-secondary)]">{t('subtitle')}</span>
         </div>
         <button
           type="button"
@@ -114,7 +109,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
           className="text-sm px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-espresso)] hover:border-[var(--color-brown)] transition"
           disabled={loading}
         >
-          Neu starten
+          {t('reset')}
         </button>
       </div>
 
@@ -123,7 +118,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
           value={input}
           onChange={setInput}
           rows={4}
-          placeholder="Beschreibe, was du magst (z.B. fruchtig, Espresso, Kolumbien)..."
+          placeholder={t('placeholder')}
         />
         <div className="flex flex-wrap gap-2">
           {quickPrompts.map((text) => (
@@ -138,7 +133,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
           ))}
         </div>
         <Button onClick={handleSend} disabled={loading}>
-          {loading ? 'Suche passende Kaffees...' : 'Empfehlung anfordern'}
+          {loading ? t('loading') : t('send')}
         </Button>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
@@ -146,7 +141,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
       <div ref={listRef} className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
         {messages.length === 0 && (
           <p className="text-sm text-[var(--color-text-secondary)]">
-            Tipp: Nutze deine aktuellen Filter (Region, Röstung, Zubereitung) und beschreibe Geschmack oder Anlass.
+            {t('tip')}
           </p>
         )}
 
@@ -168,7 +163,7 @@ export function CoffeeChat({ preferences, onRecommendations }: CoffeeChatProps) 
                         className="text-[var(--color-brown)] underline"
                         href={`/kaffees/${rec.slug}`}
                       >
-                        Zum Kaffee
+                        {t('toCoffee')}
                       </Link>
                     )}
                   </div>

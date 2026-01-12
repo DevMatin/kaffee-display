@@ -37,3 +37,5 @@ ALTER TABLE public.coffee_brew_methods DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.coffee_images DISABLE ROW LEVEL SECURITY;
 
 
+
+

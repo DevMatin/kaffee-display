@@ -23,10 +23,11 @@ export default async function RegionDetailPage({
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const [region, allCoffees, tCommon] = await Promise.all([
+  const [region, allCoffees, tCommon, misc] = await Promise.all([
     getRegionById(id, locale),
     getCoffees(locale),
     getTranslations({ locale, namespace: 'common' }),
+    getTranslations({ locale, namespace: 'misc' }),
   ]);
 
   if (!region) {
@@ -69,9 +70,9 @@ export default async function RegionDetailPage({
         </div>
 
         <div className="lg:col-span-2">
-          <h2 className="mb-6">Kaffees aus dieser Region ({regionCoffees.length})</h2>
+          <h2 className="mb-6">{misc('coffeesFromRegion', { count: regionCoffees.length })}</h2>
           {regionCoffees.length === 0 ? (
-            <p className="text-[var(--color-text-secondary)]">Noch keine Kaffees aus dieser Region.</p>
+            <p className="text-[var(--color-text-secondary)]">{misc('noCoffeesInRegion')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {regionCoffees.map((coffee) => (

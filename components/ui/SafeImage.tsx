@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface SafeImageProps {
   src: string;
@@ -26,6 +27,8 @@ export function SafeImage({
   priority,
   unoptimized,
 }: SafeImageProps) {
+  const common = useTranslations('common');
+  const misc = useTranslations('misc');
   const [hasError, setHasError] = useState(false);
   const [imageSrc, setImageSrc] = useState(src);
 
@@ -36,7 +39,7 @@ export function SafeImage({
         className={`bg-[var(--color-beige-light)] flex items-center justify-center ${className}`}
         style={fill ? undefined : { width, height }}
       >
-        <span className="text-[var(--color-text-muted)] text-sm">Kein Bild</span>
+        <span className="text-[var(--color-text-muted)] text-sm">{common('noImage')}</span>
       </div>
     );
   }
@@ -50,7 +53,7 @@ export function SafeImage({
         className={`bg-[var(--color-beige-light)] flex items-center justify-center ${className}`}
         style={fill ? undefined : { width, height }}
       >
-        <span className="text-[var(--color-text-muted)] text-sm">Ungültige URL</span>
+        <span className="text-[var(--color-text-muted)] text-sm">{misc('invalidUrl')}</span>
       </div>
     );
   }

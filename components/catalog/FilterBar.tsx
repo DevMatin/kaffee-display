@@ -30,11 +30,7 @@ export function FilterBar({
   regions,
   brewMethods,
 }: FilterBarProps) {
-  const locale = useLocale();
   const t = useTranslations('filter');
-  
-  console.log('FilterBar Locale:', locale);
-  console.log('FilterBar Translation for search:', t('search'));
 
   const roastOptions = [
     { value: '', label: t('allRoasts') },

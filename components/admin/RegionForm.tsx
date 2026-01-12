@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { Region } from '@/lib/types';
 import { createRegion, updateRegion, deleteRegion } from '@/lib/mutations';
+import { useTranslations } from 'next-intl';
 
 interface RegionFormProps {
   region?: Region;
 }
 
 export function RegionForm({ region }: RegionFormProps) {
+  const t = useTranslations('admin.form');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -48,7 +50,7 @@ export function RegionForm({ region }: RegionFormProps) {
       router.refresh();
     } catch (error) {
       console.error('Error saving region:', error);
-      alert('Fehler beim Speichern der Region');
+      alert(t('saveRegionError'));
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ export function RegionForm({ region }: RegionFormProps) {
       router.refresh();
     } catch (error) {
       console.error('Error deleting region:', error);
-      alert('Fehler beim Löschen der Region');
+      alert(t('deleteRegionError'));
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -74,30 +76,30 @@ export function RegionForm({ region }: RegionFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <h2 className="mb-6">Region-Informationen</h2>
+        <h2 className="mb-6">{t('regionInfo')}</h2>
         <div className="space-y-4">
           <Input
-            label="Land *"
+            label={`${t('country')} *`}
             value={formData.country}
             onChange={(value) => setFormData({ ...formData, country: value })}
             required
           />
           <Input
-            label="Region *"
+            label={`${t('region')} *`}
             value={formData.region_name}
             onChange={(value) => setFormData({ ...formData, region_name: value })}
             required
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Breitengrad"
+              label={t('latitude')}
               type="number"
               step="any"
               value={formData.latitude}
               onChange={(value) => setFormData({ ...formData, latitude: value })}
             />
             <Input
-              label="Längengrad"
+              label={t('longitude')}
               type="number"
               step="any"
               value={formData.longitude}
@@ -105,13 +107,13 @@ export function RegionForm({ region }: RegionFormProps) {
             />
           </div>
           <Input
-            label="Emblem URL"
+            label={t('emblemUrl')}
             value={formData.emblem_url}
             onChange={(value) => setFormData({ ...formData, emblem_url: value })}
             placeholder="https://..."
           />
           <Textarea
-            label="Beschreibung"
+            label={t('description')}
             value={formData.description}
             onChange={(value) => setFormData({ ...formData, description: value })}
             rows={4}
@@ -130,7 +132,7 @@ export function RegionForm({ region }: RegionFormProps) {
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={loading}
                 >
-                  Löschen
+              {t('delete')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
@@ -140,7 +142,7 @@ export function RegionForm({ region }: RegionFormProps) {
                     onClick={handleDelete}
                     disabled={loading}
                   >
-                    Wirklich löschen?
+                {t('confirmDelete')}
                   </Button>
                   <Button
                     type="button"
@@ -148,7 +150,7 @@ export function RegionForm({ region }: RegionFormProps) {
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={loading}
                   >
-                    Abbrechen
+                {t('cancel')}
                   </Button>
                 </div>
               )}
@@ -156,7 +158,7 @@ export function RegionForm({ region }: RegionFormProps) {
           )}
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Speichern...' : region ? 'Aktualisieren' : 'Erstellen'}
+      {loading ? t('saveLoading') : region ? t('update') : t('create')}
         </Button>
       </div>
     </form>

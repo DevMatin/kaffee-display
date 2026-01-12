@@ -4,6 +4,7 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import * as d3 from 'd3';
 import { motion } from 'framer-motion';
 import type { FlavorWheelNode } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 
 interface D3FlavorWheelProps {
   data: FlavorWheelNode;
@@ -151,6 +152,7 @@ export function D3FlavorWheel({
   width: propWidth = 800,
   height: propHeight = 800,
 }: D3FlavorWheelProps) {
+  const misc = useTranslations('misc');
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -324,12 +326,13 @@ export function D3FlavorWheel({
         const tooltipX = centerX + Math.cos(midAngle - Math.PI / 2) * tooltipRadius;
         const tooltipY = centerY + Math.sin(midAngle - Math.PI / 2) * tooltipRadius;
         
+        const pathText = misc('path', { path: ancestors.join(' → ') });
         const content = `
           <div style="display: flex; align-items: center; gap: 6px;">
             <strong style="color: ${isHighlighted ? '#16a34a' : '#333'}">${nodeName}</strong>
             ${isHighlighted ? '<span style="color: #16a34a; font-size: 16px;">✓</span>' : ''}
           </div>
-          ${ancestors.length > 0 ? `<div style="margin-top: 4px; font-size: 12px; color: #666;">Pfad: ${ancestors.join(' → ')}</div>` : ''}
+          ${ancestors.length > 0 ? `<div style="margin-top: 4px; font-size: 12px; color: #666;">${pathText}</div>` : ''}
         `;
         
         setTooltipData({
@@ -358,12 +361,13 @@ export function D3FlavorWheel({
         const tooltipX = centerX + Math.cos(midAngle - Math.PI / 2) * tooltipRadius;
         const tooltipY = centerY + Math.sin(midAngle - Math.PI / 2) * tooltipRadius;
         
+        const pathText = misc('path', { path: ancestors.join(' → ') });
         const content = `
           <div style="display: flex; align-items: center; gap: 6px;">
             <strong style="color: ${isHighlighted ? '#16a34a' : '#333'}">${nodeName}</strong>
             ${isHighlighted ? '<span style="color: #16a34a; font-size: 16px;">✓</span>' : ''}
           </div>
-          ${ancestors.length > 0 ? `<div style="margin-top: 4px; font-size: 12px; color: #666;">Pfad: ${ancestors.join(' → ')}</div>` : ''}
+          ${ancestors.length > 0 ? `<div style="margin-top: 4px; font-size: 12px; color: #666;">${pathText}</div>` : ''}
         `;
         
         setTooltipData({
@@ -468,12 +472,12 @@ export function D3FlavorWheel({
       setTooltipData(null);
     };
 
-  }, [transformedData, dimensions, highlightedNotes, highlightedNoteIds]);
+  }, [transformedData, dimensions, highlightedNotes, highlightedNoteIds, misc]);
 
   if (!transformedData || !transformedData.children || transformedData.children.length === 0) {
     return (
       <div className="w-full h-[600px] flex items-center justify-center">
-        <p className="text-[var(--color-text-muted)]">Keine Daten verfügbar</p>
+        <p className="text-[var(--color-text-muted)]">{misc('noData')}</p>
       </div>
     );
   }

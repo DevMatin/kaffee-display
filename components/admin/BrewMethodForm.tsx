@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { BrewMethod } from '@/lib/types';
 import { createBrewMethod, updateBrewMethod, deleteBrewMethod } from '@/lib/mutations';
+import { useTranslations } from 'next-intl';
 
 interface BrewMethodFormProps {
   brewMethod?: BrewMethod;
 }
 
 export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
+  const t = useTranslations('admin.form');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -37,7 +39,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
       router.refresh();
     } catch (error) {
       console.error('Error saving brew method:', error);
-      alert('Fehler beim Speichern der Zubereitung');
+      alert(t('saveBrewError'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
       router.refresh();
     } catch (error) {
       console.error('Error deleting brew method:', error);
-      alert('Fehler beim Löschen der Zubereitung');
+      alert(t('deleteBrewError'));
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -63,10 +65,10 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <h2 className="mb-6">Zubereitung-Informationen</h2>
+        <h2 className="mb-6">{t('brewInfo')}</h2>
         <div className="space-y-4">
           <Input
-            label="Name *"
+            label={t('nameRequired')}
             value={formData.name}
             onChange={(value) => setFormData({ ...formData, name: value })}
             required
@@ -91,7 +93,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={loading}
                 >
-                  Löschen
+              {t('delete')}
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
@@ -101,7 +103,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
                     onClick={handleDelete}
                     disabled={loading}
                   >
-                    Wirklich löschen?
+                {t('confirmDelete')}
                   </Button>
                   <Button
                     type="button"
@@ -109,7 +111,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={loading}
                   >
-                    Abbrechen
+                {t('cancel')}
                   </Button>
                 </div>
               )}
@@ -117,7 +119,7 @@ export function BrewMethodForm({ brewMethod }: BrewMethodFormProps) {
           )}
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Speichern...' : brewMethod ? 'Aktualisieren' : 'Erstellen'}
+      {loading ? t('saveLoading') : brewMethod ? t('update') : t('create')}
         </Button>
       </div>
     </form>

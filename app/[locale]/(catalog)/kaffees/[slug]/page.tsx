@@ -32,6 +32,7 @@ export default async function CoffeeDetailPage({
   const t = await getTranslations({ locale, namespace: 'coffee' });
   const common = await getTranslations({ locale, namespace: 'common' });
   const filterT = await getTranslations({ locale, namespace: 'filter' });
+  const detailT = await getTranslations({ locale, namespace: 'coffeeDetail' });
 
   if (!coffee) {
     notFound();
@@ -176,18 +177,16 @@ export default async function CoffeeDetailPage({
               : []
             ).map((method: any, index: number) => (
               <Card key={index} padding="md">
-                <span className="text-sm text-[var(--color-text-muted)] block mb-2">Verarbeitung</span>
+                <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('processing')}</span>
                 <p className="text-[var(--color-text-primary)] font-medium mb-2">{method.name}</p>
                 <p className="text-sm text-[var(--color-text-secondary)]">
                   {method.description ||
-                    (method.name.toLowerCase().includes('gewaschen') &&
-                      'Bei der gewaschenen Verarbeitung werden die Kaffeekirschen entpulpt und fermentiert, bevor die Bohnen getrocknet werden. Dies führt zu einem sauberen, klaren Geschmacksprofil.') ||
+                    (method.name.toLowerCase().includes('gewaschen') && detailT('processingWashed')) ||
                     ((method.name.toLowerCase().includes('natürlich') ||
                       method.name.toLowerCase().includes('natural')) &&
-                      'Bei der natürlichen Verarbeitung werden die Kaffeekirschen in der Sonne getrocknet, bevor die Bohnen entfernt werden. Dies verleiht dem Kaffee fruchtige, süße Noten.') ||
-                    (method.name.toLowerCase().includes('honey') &&
-                      'Bei der Honey-Verarbeitung wird ein Teil des Fruchtfleisches an der Bohne belassen, was zu einem ausgewogenen Geschmacksprofil zwischen gewaschen und natürlich führt.') ||
-                    'Die Verarbeitungsmethode bestimmt maßgeblich das Geschmacksprofil des Kaffees und beeinflusst Süße, Körper und Komplexität.'}
+                      detailT('processingNatural')) ||
+                    (method.name.toLowerCase().includes('honey') && detailT('processingHoney')) ||
+                    detailT('processingGeneric')}
                 </p>
               </Card>
             ))}
@@ -199,11 +198,10 @@ export default async function CoffeeDetailPage({
               : []
             ).map((varietal: any, index: number) => (
               <Card key={index} padding="md">
-                <span className="text-sm text-[var(--color-text-muted)] block mb-2">Varietät</span>
+                <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('varietal')}</span>
                 <p className="text-[var(--color-text-primary)] font-medium mb-2">{varietal.name}</p>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  {varietal.description ||
-                    'Die Kaffeevarietät bestimmt die genetischen Eigenschaften der Pflanze und beeinflusst Geschmack, Ertrag und Widerstandsfähigkeit. Verschiedene Varietäten haben charakteristische Aromen und Eigenschaften.'}
+                  {varietal.description || detailT('processingGeneric')}
                 </p>
               </Card>
             ))}
@@ -211,7 +209,7 @@ export default async function CoffeeDetailPage({
 
           {coffee.flavor_notes && coffee.flavor_notes.length > 0 && (
             <div className="mb-6">
-              <span className="text-sm text-[var(--color-text-muted)] block mb-3">Geschmacksnoten</span>
+              <span className="text-sm text-[var(--color-text-muted)] block mb-3">{detailT('flavorNotes')}</span>
               <div className="flex flex-wrap gap-2 mb-6">
                 {coffee.flavor_notes.map((note) => (
                   <Badge key={note.id} color="secondary">
@@ -220,7 +218,7 @@ export default async function CoffeeDetailPage({
                 ))}
               </div>
               <Card padding="md">
-                <h3 className="text-lg font-semibold mb-4">Flavor Wheel</h3>
+                <h3 className="text-lg font-semibold mb-4">{detailT('flavorWheel')}</h3>
                 <FlavorWheelSection
                   data={flavorWheelData}
                   highlightedNotes={coffee.flavor_notes.map((note) => note.name)}
@@ -232,7 +230,7 @@ export default async function CoffeeDetailPage({
 
           {coffee.brew_methods && coffee.brew_methods.length > 0 && (
             <div>
-              <span className="text-sm text-[var(--color-text-muted)] block mb-3">Empfohlene Zubereitung</span>
+              <span className="text-sm text-[var(--color-text-muted)] block mb-3">{detailT('recommendedBrew')}</span>
               <div className="flex flex-wrap gap-2">
                 {coffee.brew_methods.map((method) => (
                   <Badge key={method.id} color="accent">
@@ -247,7 +245,7 @@ export default async function CoffeeDetailPage({
 
       {coffee.description && (
         <Card>
-          <h2 className="mb-4">Beschreibung</h2>
+          <h2 className="mb-4">{detailT('description')}</h2>
           <p className="text-[var(--color-text-secondary)] whitespace-pre-line">{coffee.description}</p>
         </Card>
       )}

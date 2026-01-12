@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import type { Region } from '@/lib/types';
@@ -10,15 +11,17 @@ interface RegionTableProps {
 }
 
 export function RegionTable({ regions }: RegionTableProps) {
+  const t = useTranslations('admin');
+  
   return (
     <Card padding="lg">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-[var(--color-beige)]">
-              <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Land</th>
-              <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Region</th>
-              <th className="text-right py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">Aktionen</th>
+              <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">{t('country')}</th>
+              <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">{t('region')}</th>
+              <th className="text-right py-4 px-4 text-sm font-semibold text-[var(--color-text-muted)]">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -33,7 +36,7 @@ export function RegionTable({ regions }: RegionTableProps) {
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/regionen/${region.id}`}>
                       <Button variant="outline" size="sm">
-                        Bearbeiten
+                        {t('edit')}
                       </Button>
                     </Link>
                   </div>
@@ -44,7 +47,7 @@ export function RegionTable({ regions }: RegionTableProps) {
         </table>
         {regions.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[var(--color-text-secondary)]">Noch keine Regionen vorhanden.</p>
+            <p className="text-[var(--color-text-secondary)]">{t('noData')}</p>
           </div>
         )}
       </div>
