@@ -54,7 +54,9 @@ export function CoffeeTable({ coffees }: CoffeeTableProps) {
                 <td className="py-4 px-4 text-[var(--color-text-secondary)]">
                   {coffee.region ? `${coffee.region.region_name}, ${coffee.region.country}` : '-'}
                 </td>
-                <td className="py-4 px-4 text-[var(--color-text-secondary)]">{coffee.roast_level || '-'}</td>
+                <td className="py-4 px-4 text-[var(--color-text-secondary)]">
+                  {coffee.roast_level_obj?.name || coffee.roast_level_old || coffee.roast_level || '-'}
+                </td>
                 <td className="py-4 px-4">
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/kaffees/${coffee.id}`}>

@@ -1,7 +1,7 @@
 import { supabase, supabaseAdmin } from './supabase';
 import { logger } from './logger';
 import { deleteImage } from './storage';
-import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory } from './types';
+import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory, RoastLevel, RoastLevelTranslation } from './types';
 
 function generateSlug(name: string): string {
   return name
@@ -185,36 +185,72 @@ export async function deleteCoffee(id: string): Promise<void> {
   }
 }
 
+export async function manageCoffeeFlavorCategories(
+  coffeeId: string,
+  flavorCategoryIds: string[]
+): Promise<void> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Managing coffee flavor categories', { coffeeId, flavorCategoryIds });
+
+    const { error: deleteError } = await supabase.from('coffee_flavor_notes').delete().eq('coffee_id', coffeeId);
+    
+    if (deleteError) {
+      logger.error('Error deleting existing flavor categories', deleteError);
+      throw deleteError;
+    }
+
+    if (flavorCategoryIds.length > 0) {
+      const inserts = flavorCategoryIds
+        .filter((id) => id && id.trim() !== '')
+        .map((categoryId) => ({
+          coffee_id: coffeeId,
+          flavor_category_id: categoryId,
+        }));
+
+      if (inserts.length === 0) {
+        logger.debug('No valid flavor category IDs to insert');
+        return;
+      }
+
+      const { error, data } = await supabase.from('coffee_flavor_notes').insert(inserts).select();
+
+      if (error) {
+        logger.error('Error inserting flavor categories', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          inserts: JSON.stringify(inserts),
+          flavorCategoryIds,
+        });
+        throw new Error(`Failed to insert flavor categories: ${error.message} (${error.code})`);
+      }
+
+      logger.debug('Successfully inserted flavor categories', { count: data?.length || 0 });
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('coffee_flavor_notes', 'manage', duration, { coffeeId, count: flavorCategoryIds.length });
+  } catch (error: any) {
+    logger.error('Failed to manage flavor categories', {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+      stack: error?.stack,
+      coffeeId,
+      flavorCategoryIds,
+    });
+    throw error;
+  }
+}
+
 export async function manageCoffeeFlavorNotes(
   coffeeId: string,
   flavorNoteIds: string[]
 ): Promise<void> {
-  const startTime = performance.now();
-  try {
-    logger.debug('Managing coffee flavor notes', { coffeeId, flavorNoteIds });
-
-    await supabase.from('coffee_flavor_notes').delete().eq('coffee_id', coffeeId);
-
-    if (flavorNoteIds.length > 0) {
-      const inserts = flavorNoteIds.map((flavorId) => ({
-        coffee_id: coffeeId,
-        flavor_id: flavorId,
-      }));
-
-      const { error } = await supabase.from('coffee_flavor_notes').insert(inserts);
-
-      if (error) {
-        logger.error('Error managing flavor notes', error);
-        throw error;
-      }
-    }
-
-    const duration = Math.round(performance.now() - startTime);
-    logger.query('coffee_flavor_notes', 'manage', duration, { coffeeId, count: flavorNoteIds.length });
-  } catch (error) {
-    logger.error('Failed to manage flavor notes', error);
-    throw error;
-  }
+  return manageCoffeeFlavorCategories(coffeeId, flavorNoteIds);
 }
 
 export async function manageCoffeeBrewMethods(
@@ -528,3 +564,96 @@ export async function deleteBrewMethod(id: string): Promise<void> {
   }
 }
 
+export async function createRoastLevel(roastLevelData: Partial<RoastLevel>, translations: RoastLevelTranslation[] = []): Promise<RoastLevel> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Creating roast level', { name: roastLevelData.name });
+
+    const { data, error } = await (supabaseAdmin || supabase).from('roast_levels').insert(roastLevelData).select().single();
+
+    if (error) {
+      logger.error('Error creating roast level', error);
+      throw error;
+    }
+
+    if (translations.length > 0) {
+      const translationsWithId = translations.map((t) => ({ ...t, roast_level_id: data.id }));
+      const { error: transError } = await (supabaseAdmin || supabase)
+        .from('roast_levels_translations')
+        .insert(translationsWithId);
+
+      if (transError) {
+        logger.error('Error creating roast level translations', transError);
+        throw transError;
+      }
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('roast_levels', 'insert', duration, { id: data.id });
+
+    return data;
+  } catch (error) {
+    logger.error('Failed to create roast level', error);
+    throw error;
+  }
+}
+
+export async function updateRoastLevel(id: string, roastLevelData: Partial<RoastLevel>, translations: RoastLevelTranslation[] = []): Promise<RoastLevel> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Updating roast level', { id });
+
+    const { data, error } = await (supabaseAdmin || supabase)
+      .from('roast_levels')
+      .update(roastLevelData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error updating roast level', error);
+      throw error;
+    }
+
+    if (translations.length > 0) {
+      for (const translation of translations) {
+        const { error: transError } = await (supabaseAdmin || supabase)
+          .from('roast_levels_translations')
+          .upsert({ ...translation, roast_level_id: id }, { onConflict: 'roast_level_id,locale' });
+
+        if (transError) {
+          logger.error('Error updating roast level translation', transError);
+          throw transError;
+        }
+      }
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('roast_levels', 'update', duration, { id });
+
+    return data;
+  } catch (error) {
+    logger.error('Failed to update roast level', error);
+    throw error;
+  }
+}
+
+export async function deleteRoastLevel(id: string): Promise<void> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Deleting roast level', { id });
+
+    const { error } = await (supabaseAdmin || supabase).from('roast_levels').delete().eq('id', id);
+
+    if (error) {
+      logger.error('Error deleting roast level', error);
+      throw error;
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('roast_levels', 'delete', duration, { id });
+  } catch (error) {
+    logger.error('Failed to delete roast level', error);
+    throw error;
+  }
+}

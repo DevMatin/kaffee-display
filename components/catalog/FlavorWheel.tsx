@@ -247,12 +247,6 @@ export function FlavorWheel({ data, highlightedNotes = [], highlightedNoteIds = 
           layers={['arcs', 'arcLabels']}
         />
       </motion.div>
-      
-      {highlightedNotes.length > 0 && (
-        <div className="mt-4 text-sm text-[var(--color-text-muted)]">
-          Hervorgehobene Noten: {highlightedNotes.join(', ')}
-        </div>
-      )}
     </div>
   );
 }

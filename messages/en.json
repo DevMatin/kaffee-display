@@ -57,27 +57,39 @@
     "processingWashed": "In washed processing, cherries are depulped and fermented before drying, leading to a clean, clear flavor profile.",
     "processingNatural": "In natural processing, cherries dry in the sun before the beans are removed, giving fruity, sweet notes.",
     "processingHoney": "In honey processing, some mucilage stays on the bean, resulting in a balanced profile between washed and natural.",
-    "processingGeneric": "The processing method shapes the coffee's flavor, sweetness, body, and complexity."
+    "processingGeneric": "The processing method shapes the coffee's flavor, sweetness, body, and complexity.",
+    "roastLight": "Light roast highlights the bean's origin flavors with fruity and floral notes and higher acidity.",
+    "roastMedium": "Medium roast offers a balanced flavor profile with harmonious aromas, moderate acidity, and good sweetness.",
+    "roastDark": "Dark roast develops bold, roasty flavors with less acidity, more body, and bitterness.",
+    "roastGeneric": "Roast level affects the flavor profile: lighter roasts emphasize origin flavors, darker roasts develop roasty notes."
   },
   "chat": {
     "title": "Barista Chat",
-    "subtitle": "Recommendations in real time",
+    "subtitle": "Find your perfect coffee",
     "reset": "Restart",
-    "placeholder": "Describe what you like (e.g. fruity, espresso, Colombia)...",
-    "quickPrompts": [
-      "I like fruity filter coffees (V60/Aeropress)",
-      "Mild espresso, nutty & chocolatey",
-      "Light roast, pour over, preferably African origin",
-      "Strong & bold for fully automatic machine",
-      "Low acidity, lots of sweetness, little bitterness"
-    ],
-    "send": "Request recommendation",
-    "loading": "Finding matching coffees...",
-    "tip": "Tip: Use your current filters (region, roast, brew) and describe taste or occasion.",
+    "placeholder": "Or write your own answer...",
+    "quickPrompts": [],
+    "send": "Send",
+    "loading": "Thinking...",
+    "tip": "The barista asks you questions - answer via button or text. At the end you'll get your perfect recommendation!",
     "toCoffee": "Go to coffee",
     "noAnswer": "No answer received.",
     "fetchError": "Request failed",
-    "failed": "Chat failed"
+    "failed": "Chat failed",
+    "customAnswer": "Custom answer",
+    "customPlaceholder": "Your answer...",
+    "cancel": "Cancel",
+    "easyChat": "Easy Chat",
+    "advancedChat": "Advanced Chat",
+    "advancedPlaceholder": "Ask anything about coffee...",
+    "advancedPrompt": "Ask me anything about coffee! I can explain everything: processing methods, roast levels, regions, brew methods, flavor notes, and more.",
+    "advancedSuggestions": [
+      "Tell me about processing methods",
+      "What does Omni-roast mean?",
+      "Which regions are available?",
+      "Explain flavor notes",
+      "What brew methods are there?"
+    ]
   },
   "footer": {
     "copyright": "© {year} Coffee Catalog",

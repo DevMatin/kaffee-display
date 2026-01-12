@@ -8,19 +8,20 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory } from '@/lib/types';
-import { createCoffee, updateCoffee, manageCoffeeFlavorNotes, manageCoffeeBrewMethods, deleteCoffee } from '@/lib/mutations';
+import type { Coffee, Region, FlavorNote, BrewMethod, FlavorCategory, RoastLevel } from '@/lib/types';
+import { createCoffee, updateCoffee, manageCoffeeFlavorCategories, manageCoffeeBrewMethods, deleteCoffee } from '@/lib/mutations';
 import { uploadImage, deleteImage } from '@/lib/storage';
 import { useTranslations } from 'next-intl';
 
 interface CoffeeFormProps {
   coffee?: Coffee;
   regions: Region[];
-  flavorNotes: FlavorNote[];
+  flavorCategories: FlavorCategory[];
   brewMethods: BrewMethod[];
+  roastLevels?: RoastLevel[];
 }
 
-export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: CoffeeFormProps) {
+export function CoffeeForm({ coffee, regions, flavorCategories, brewMethods, roastLevels = [] }: CoffeeFormProps) {
   const t = useTranslations('admin.form');
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +37,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
     name: coffee?.name || '',
     short_description: coffee?.short_description || '',
     description: coffee?.description || '',
-    roast_level: coffee?.roast_level || '',
+    roast_level_id: coffee?.roast_level_id || '',
     processing_method: coffee?.processing_method || '',
     varietal: coffee?.varietal || '',
     altitude_min: coffee?.altitude_min?.toString() || '',
@@ -46,8 +47,8 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
     image_url: coffee?.image_url || '',
   });
 
-  const [selectedFlavorNotes, setSelectedFlavorNotes] = useState<string[]>(
-    coffee?.flavor_notes?.map((fn) => fn.id) || []
+  const [selectedFlavorCategories, setSelectedFlavorCategories] = useState<string[]>(
+    coffee?.flavor_categories?.map((fc) => fc.id) || []
   );
   const [selectedBrewMethods, setSelectedBrewMethods] = useState<string[]>(
     coffee?.brew_methods?.map((bm) => bm.id) || []
@@ -163,7 +164,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         name: formData.name,
         short_description: formData.short_description || null,
         description: formData.description || null,
-        roast_level: formData.roast_level || null,
+        roast_level_id: formData.roast_level_id || null,
         processing_method: formData.processing_method || null,
         varietal: formData.varietal || null,
         altitude_min: formData.altitude_min ? parseInt(formData.altitude_min) : null,
@@ -193,7 +194,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
       }
 
       await Promise.all([
-        manageCoffeeFlavorNotes(coffeeId, selectedFlavorNotes),
+        manageCoffeeFlavorCategories(coffeeId, selectedFlavorCategories),
         manageCoffeeBrewMethods(coffeeId, selectedBrewMethods),
       ]);
 
@@ -210,7 +211,7 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
     }
   };
 
-  const handleAiFill = async (target?: 'short_description' | 'description' | 'flavor_notes' | 'all') => {
+  const handleAiFill = async (target?: 'short_description' | 'description' | 'flavor_categories' | 'all') => {
     if (!formData.name) {
       alert('Bitte zuerst einen Namen eingeben');
       return;
@@ -224,16 +225,17 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         body: JSON.stringify({
           name: formData.name,
           country: formData.country,
-          roast_level: formData.roast_level,
+          roast_level_id: formData.roast_level_id,
           processing_method: formData.processing_method,
           varietal: formData.varietal,
           short_description: formData.short_description,
           description: formData.description,
           target_field: target && target !== 'all' ? target : undefined,
-          availableFlavorNotes: flavorNotes.map((fn) => ({
-            name: fn.name,
-            category: fn.category?.name || null,
-            parent: fn.category?.parent?.name || null,
+          availableFlavorCategories: flavorCategories.map((fc) => ({
+            name: fc.name,
+            level: fc.level,
+            parent: fc.parent?.name || null,
+            grandParent: fc.parent?.parent?.name || null,
           })),
         }),
       });
@@ -250,20 +252,20 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         description: target && target !== 'all' && target !== 'description' ? prev.description : data.description ?? prev.description,
       }));
 
-      const shouldUpdateFlavor = !target || target === 'all' || target === 'flavor_notes';
-      if (shouldUpdateFlavor && Array.isArray(data.flavor_notes) && data.flavor_notes.length > 0) {
+      const shouldUpdateFlavor = !target || target === 'all' || target === 'flavor_categories';
+      if (shouldUpdateFlavor && Array.isArray(data.flavor_categories) && data.flavor_categories.length > 0) {
         const normalize = (val: string) =>
           val
             .toLowerCase()
             .normalize('NFD')
             .replace(/\p{Diacritic}/gu, '')
             .trim();
-        const wanted = new Set(data.flavor_notes.map((n: string) => normalize(n)));
-        const matches = flavorNotes
-          .filter((fn) => wanted.has(normalize(fn.name)))
-          .map((fn) => fn.id);
+        const wanted = new Set(data.flavor_categories.map((n: string) => normalize(n)));
+        const matches = flavorCategories
+          .filter((fc) => wanted.has(normalize(fc.name)))
+          .map((fc) => fc.id);
         if (matches.length > 0) {
-          setSelectedFlavorNotes(Array.from(new Set(matches)));
+          setSelectedFlavorCategories(Array.from(new Set(matches)));
         }
       }
     } catch (error: any) {
@@ -422,11 +424,26 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         <Card>
           <h2 className="mb-6">{t('details')}</h2>
           <div className="space-y-4">
-            <Input
-              label={t('roastLevel')}
-              value={formData.roast_level}
-              onChange={(value) => setFormData({ ...formData, roast_level: value })}
-            />
+            <div>
+              <Select
+                label={t('roastLevel')}
+                value={formData.roast_level_id}
+                onChange={(value) => setFormData({ ...formData, roast_level_id: value })}
+                options={[
+                  { value: '', label: 'Kein Röstgrad' },
+                  ...roastLevels.map((rl) => ({ value: rl.id, label: rl.name })),
+                ]}
+              />
+              {coffee?.roast_level_old && (
+                <div className="mt-2 p-3 bg-[var(--color-beige-light)] rounded-lg border border-[var(--color-beige)]">
+                  <p className="text-sm text-[var(--color-text-muted)] mb-1">Alter Röstgrad (nur zur Info):</p>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">{coffee.roast_level_old}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    Bitte wähle oben den passenden neuen Röstgrad aus.
+                  </p>
+                </div>
+              )}
+            </div>
             <Input
               label={t('processingMethod')}
               value={formData.processing_method}
@@ -496,109 +513,86 @@ export function CoffeeForm({ coffee, regions, flavorNotes, brewMethods }: Coffee
         <Card>
           <div className="flex items-center justify-between mb-6">
             <h2>{t('flavorNotes')}</h2>
-            <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('flavor_notes')} disabled={loading || aiLoading}>
+            <Button type="button" variant="secondary" size="sm" onClick={() => handleAiFill('flavor_categories')} disabled={loading || aiLoading}>
               {aiLoading ? '…' : t('aiFlavor')}
             </Button>
           </div>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {(() => {
-              const notesByCategory = new Map<string, { category: FlavorCategory | null; notes: FlavorNote[] }>();
-              const uncategorized: FlavorNote[] = [];
-
-              flavorNotes.forEach((note) => {
-                if (note.category) {
-                  const categoryId = note.category.id;
-                  if (!notesByCategory.has(categoryId)) {
-                    notesByCategory.set(categoryId, { category: note.category, notes: [] });
-                  }
-                  notesByCategory.get(categoryId)!.notes.push(note);
-                } else {
-                  uncategorized.push(note);
+              const categoriesByLevel = new Map<number, FlavorCategory[]>();
+              const categoriesByParent = new Map<string | null, FlavorCategory[]>();
+              
+              flavorCategories.forEach((category) => {
+                if (!categoriesByLevel.has(category.level)) {
+                  categoriesByLevel.set(category.level, []);
                 }
+                categoriesByLevel.get(category.level)!.push(category);
+                
+                const parentKey = category.parent_id || null;
+                if (!categoriesByParent.has(parentKey)) {
+                  categoriesByParent.set(parentKey, []);
+                }
+                categoriesByParent.get(parentKey)!.push(category);
               });
 
-              const sortedCategories = Array.from(notesByCategory.values()).sort((a, b) => {
-                if (!a.category || !b.category) return 0;
-                const aParentName = a.category.parent?.name || '';
-                const bParentName = b.category.parent?.name || '';
-                if (aParentName !== bParentName) {
-                  return aParentName.localeCompare(bParentName);
-                }
-                if (a.category.level !== b.category.level) return a.category.level - b.category.level;
-                return a.category.name.localeCompare(b.category.name);
-              });
+              const level1Categories = categoriesByParent.get(null) || [];
+              level1Categories.sort((a, b) => a.name.localeCompare(b.name));
 
-              let currentParent: string | null = null;
+              let currentLevel1: string | null = null;
+              let currentLevel2: string | null = null;
+
+              const renderCategory = (category: FlavorCategory, depth: number = 0) => {
+                const isSelected = selectedFlavorCategories.includes(category.id);
+                const level2Categories = categoriesByParent.get(category.id) || [];
+                level2Categories.sort((a, b) => a.name.localeCompare(b.name));
+
+                const showLevel1 = category.level === 1 && category.name !== currentLevel1;
+                const showLevel2 = category.level === 2 && category.parent_id && category.parent?.name !== currentLevel2;
+
+                if (showLevel1) currentLevel1 = category.name;
+                if (showLevel2 && category.parent) currentLevel2 = category.parent.name;
+
+                return (
+                  <div key={category.id} className="space-y-1">
+                    {showLevel1 && (
+                      <h2 className="text-base font-bold text-[var(--color-brown)] mt-4 mb-2 sticky top-0 bg-white py-2 border-b border-[var(--color-beige)]">
+                        {category.name}
+                      </h2>
+                    )}
+                    {showLevel2 && category.parent && (
+                      <h3 className="text-sm font-semibold text-[var(--color-brown)] mb-2 ml-4 sticky top-0 bg-white py-1">
+                        {category.parent.name}
+                      </h3>
+                    )}
+                    <div className={depth === 0 ? 'ml-2' : depth === 1 ? 'ml-6' : 'ml-8'}>
+                      <label className="flex items-center gap-3 cursor-pointer hover:bg-[var(--color-beige-light)] p-2 rounded-lg transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedFlavorCategories([...selectedFlavorCategories, category.id]);
+                            } else {
+                              setSelectedFlavorCategories(selectedFlavorCategories.filter((id) => id !== category.id));
+                            }
+                          }}
+                          className="w-5 h-5 rounded border-2 border-[var(--color-beige)] text-[var(--color-brown)] focus:ring-2 focus:ring-[var(--color-brown)]"
+                        />
+                        <span>{category.name}</span>
+                      </label>
+                    </div>
+                    {level2Categories.length > 0 && (
+                      <div className="ml-4">
+                        {level2Categories.map((level2Cat) => renderCategory(level2Cat, 1))}
+                      </div>
+                    )}
+                  </div>
+                );
+              };
 
               return (
                 <>
-                  {sortedCategories.map(({ category, notes }) => {
-                    const parentName = category?.parent?.name || null;
-                    const showParent = parentName && parentName !== currentParent;
-                    if (showParent) {
-                      currentParent = parentName;
-                    }
-
-                    return (
-                      <div key={category?.id || 'uncategorized'} className="space-y-2">
-                        {showParent && category?.parent && (
-                          <h2 className="text-base font-bold text-[var(--color-brown)] mt-4 mb-2 sticky top-0 bg-white py-2 border-b border-[var(--color-beige)]">
-                            {category.parent.name}
-                          </h2>
-                        )}
-                        {category && (
-                          <h3 className={`text-sm font-semibold text-[var(--color-brown)] mb-2 ${category.parent ? 'ml-4' : ''} sticky top-0 bg-white py-1`}>
-                            {category.name}
-                          </h3>
-                        )}
-                        <div className={`space-y-1 ${category?.parent ? 'ml-6' : 'ml-2'}`}>
-                          {notes.map((note) => (
-                            <label key={note.id} className="flex items-center gap-3 cursor-pointer hover:bg-[var(--color-beige-light)] p-2 rounded-lg transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={selectedFlavorNotes.includes(note.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedFlavorNotes([...selectedFlavorNotes, note.id]);
-                                  } else {
-                                    setSelectedFlavorNotes(selectedFlavorNotes.filter((id) => id !== note.id));
-                                  }
-                                }}
-                                className="w-5 h-5 rounded border-2 border-[var(--color-beige)] text-[var(--color-brown)] focus:ring-2 focus:ring-[var(--color-brown)]"
-                              />
-                              <span>{note.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {uncategorized.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-semibold text-[var(--color-brown)] mb-2 sticky top-0 bg-white py-1">
-                        {t('other')}
-                      </h3>
-                      <div className="space-y-1 ml-2">
-                        {uncategorized.map((note) => (
-                          <label key={note.id} className="flex items-center gap-3 cursor-pointer hover:bg-[var(--color-beige-light)] p-2 rounded-lg transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={selectedFlavorNotes.includes(note.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedFlavorNotes([...selectedFlavorNotes, note.id]);
-                                } else {
-                                  setSelectedFlavorNotes(selectedFlavorNotes.filter((id) => id !== note.id));
-                                }
-                              }}
-                              className="w-5 h-5 rounded border-2 border-[var(--color-beige)] text-[var(--color-brown)] focus:ring-2 focus:ring-[var(--color-brown)]"
-                            />
-                            <span>{note.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {level1Categories.map((level1Cat) => renderCategory(level1Cat, 0))}
                 </>
               );
             })()}

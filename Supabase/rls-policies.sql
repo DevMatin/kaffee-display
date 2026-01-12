@@ -152,4 +152,30 @@ ON public.coffee_varietals FOR ALL
 USING (true)
 WITH CHECK (true);
 
+-- ============================================
+-- ROAST_LEVELS Tabelle
+-- ============================================
+
+ALTER TABLE public.roast_levels ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Access All" ON public.roast_levels;
+
+CREATE POLICY "Public Access All"
+ON public.roast_levels FOR ALL
+USING (true)
+WITH CHECK (true);
+
+-- ============================================
+-- ROAST_LEVELS_TRANSLATIONS Tabelle
+-- ============================================
+
+ALTER TABLE public.roast_levels_translations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Access All" ON public.roast_levels_translations;
+
+CREATE POLICY "Public Access All"
+ON public.roast_levels_translations FOR ALL
+USING (true)
+WITH CHECK (true);
+
 

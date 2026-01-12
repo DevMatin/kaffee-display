@@ -57,27 +57,39 @@
     "processingWashed": "Bei der gewaschenen Verarbeitung werden die Kaffeekirschen entpulpt und fermentiert, bevor die Bohnen getrocknet werden. Dies führt zu einem sauberen, klaren Geschmacksprofil.",
     "processingNatural": "Bei der natürlichen Verarbeitung werden die Kaffeekirschen in der Sonne getrocknet, bevor die Bohnen entfernt werden. Dies verleiht dem Kaffee fruchtige, süße Noten.",
     "processingHoney": "Bei der Honey-Verarbeitung wird ein Teil des Fruchtfleisches an der Bohne belassen, was zu einem ausgewogenen Geschmacksprofil zwischen gewaschen und natürlich führt.",
-    "processingGeneric": "Die Verarbeitungsmethode bestimmt maßgeblich das Geschmacksprofil des Kaffees und beeinflusst Süße, Körper und Komplexität."
+    "processingGeneric": "Die Verarbeitungsmethode bestimmt maßgeblich das Geschmacksprofil des Kaffees und beeinflusst Süße, Körper und Komplexität.",
+    "roastLight": "Helle Röstung betont die ursprünglichen Aromen der Bohne mit fruchtigen und floralen Noten sowie höherer Säure.",
+    "roastMedium": "Mittlere Röstung bietet ein ausgewogenes Geschmacksprofil mit harmonischen Aromen, moderater Säure und guter Süße.",
+    "roastDark": "Dunkle Röstung entwickelt kräftige, röstige Aromen mit weniger Säure, mehr Körper und Bitterkeit.",
+    "roastGeneric": "Der Röstgrad beeinflusst das Geschmacksprofil: hellere Röstungen betonen die ursprünglichen Aromen, dunklere entwickeln röstige Noten."
   },
   "chat": {
     "title": "Barista-Chat",
-    "subtitle": "Empfehlungen in Echtzeit",
+    "subtitle": "Finde deinen perfekten Kaffee",
     "reset": "Neu starten",
-    "placeholder": "Beschreibe, was du magst (z.B. fruchtig, Espresso, Kolumbien)...",
-    "quickPrompts": [
-      "Ich mag fruchtige Filterkaffees (V60/Aeropress)",
-      "Milder Espresso, nussig & schokoladig",
-      "Helle Röstung, Pour Over, gern afrikanische Herkunft",
-      "Stark & kräftig für Vollautomat",
-      "Säurearm, viel Süße, wenig Bitterkeit"
-    ],
-    "send": "Empfehlung anfordern",
-    "loading": "Suche passende Kaffees...",
-    "tip": "Tipp: Nutze deine aktuellen Filter (Region, Röstung, Zubereitung) und beschreibe Geschmack oder Anlass.",
+    "placeholder": "Oder schreibe deine eigene Antwort...",
+    "quickPrompts": [],
+    "send": "Senden",
+    "loading": "Denke nach...",
+    "tip": "Der Barista stellt dir Fragen - antworte per Button oder Text. Am Ende bekommst du deine perfekte Empfehlung!",
     "toCoffee": "Zum Kaffee",
     "noAnswer": "Keine Antwort erhalten.",
     "fetchError": "Antwort fehlgeschlagen",
-    "failed": "Chat fehlgeschlagen"
+    "failed": "Chat fehlgeschlagen",
+    "customAnswer": "Eigene Antwort",
+    "customPlaceholder": "Deine Antwort...",
+    "cancel": "Abbrechen",
+    "easyChat": "Easy Chat",
+    "advancedChat": "Advanced Chat",
+    "advancedPlaceholder": "Frage alles über Kaffee...",
+    "advancedPrompt": "Stelle mir Fragen über Kaffee! Ich kann dir alles erklären: Verarbeitungsmethoden, Röstgrade, Regionen, Zubereitungsmethoden, Geschmacksnoten und mehr.",
+    "advancedSuggestions": [
+      "Erzähl mir über Verarbeitungsmethoden",
+      "Was bedeutet Omniröstung?",
+      "Welche Regionen gibt es?",
+      "Erkläre mir Geschmacksnoten",
+      "Welche Zubereitungsmethoden gibt es?"
+    ]
   },
   "footer": {
     "copyright": "© {year} Kaffee Katalog",

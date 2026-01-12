@@ -538,12 +538,6 @@ export function D3FlavorWheel({
           )}
         </svg>
       </motion.div>
-      
-      {highlightedNotes.length > 0 && (
-        <div className="mt-4 text-sm text-[var(--color-text-muted)]">
-          Hervorgehobene Noten: {highlightedNotes.join(', ')}
-        </div>
-      )}
     </div>
   );
 }

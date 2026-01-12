@@ -2,10 +2,7 @@
 -- RESET: Alle bestehenden Daten löschen
 -- ============================================
 
--- Erst flavor_notes category_id auf NULL setzen (FK-Constraint)
-UPDATE public.flavor_notes SET category_id = NULL WHERE category_id IS NOT NULL;
-
--- Dann alle flavor_categories löschen
+-- Alle flavor_categories löschen (inkl. Level 3, die jetzt die Flavor Notes sind)
 DELETE FROM public.flavor_categories;
 
 -- ============================================
@@ -224,54 +221,41 @@ all_level2 AS (
     WHERE c.level = 2
       AND c.id NOT IN (SELECT id FROM upd_l2 UNION ALL SELECT id FROM ins_l2)
 ),
-leaf_raw AS (
+l3_raw AS (
     SELECT level2, flavor AS name, flavor_color AS color FROM wheel
 ),
-leaf_dedup AS (
+l3_dedup AS (
     SELECT
         (array_agg(level2 ORDER BY level2))[1] AS level2,
         (array_agg(name ORDER BY name))[1] AS name,
         (array_agg(color ORDER BY color))[1] AS color,
-        lower((array_agg(name ORDER BY name))[1]) AS name_lower,
-        lower((array_agg(level2 ORDER BY level2))[1]) AS level2_lower
-    FROM leaf_raw
+        lower((array_agg(level2 ORDER BY level2))[1]) AS level2_lower,
+        lower((array_agg(name ORDER BY name))[1]) AS name_lower
+    FROM l3_raw
     GROUP BY lower(name)
 ),
-updated_flavors AS (
-    UPDATE public.flavor_notes fn
-    SET category_id = c2.id,
-        color_hex   = d.color
-    FROM leaf_dedup d
+upd_l3 AS (
+    UPDATE public.flavor_categories c
+    SET color_hex = d.color
+    FROM l3_dedup d
     JOIN all_level2 c2 ON c2.name_ci = d.level2_lower
-    WHERE lower(fn.name) = d.name_lower
-    RETURNING fn.id
+    WHERE c.parent_id = c2.id
+      AND c.name_ci = d.name_lower
+      AND c.level = 3
+    RETURNING c.id, c.name_ci, c.name
 ),
-inserted_flavors AS (
-    INSERT INTO public.flavor_notes(name, category_id, color_hex)
-    SELECT d.name, c2.id, d.color
-    FROM leaf_dedup d
+ins_l3 AS (
+    INSERT INTO public.flavor_categories(name, level, parent_id, color_hex)
+    SELECT d.name, 3, c2.id, d.color
+    FROM l3_dedup d
     JOIN all_level2 c2 ON c2.name_ci = d.level2_lower
-    LEFT JOIN public.flavor_notes fn ON lower(fn.name) = d.name_lower
-    WHERE fn.id IS NULL
-    RETURNING id
-),
-fix_missing_categories AS (
-    UPDATE public.flavor_notes fn
-    SET category_id = c2.id,
-        color_hex = COALESCE(fn.color_hex, d.color)
-    FROM leaf_dedup d
-    JOIN all_level2 c2 ON c2.name_ci = d.level2_lower
-    WHERE lower(fn.name) = d.name_lower
-      AND (fn.category_id IS NULL OR fn.category_id != c2.id)
-    RETURNING fn.id
+    LEFT JOIN public.flavor_categories c ON c.parent_id = c2.id AND c.name_ci = d.name_lower AND c.level = 3
+    WHERE c.id IS NULL
+    RETURNING id, name_ci, name
 )
 SELECT 'level1' AS stage, count(*) FROM ins_root
 UNION ALL
 SELECT 'level2', count(*) FROM ins_l2
 UNION ALL
-SELECT 'flavors_updated', count(*) FROM updated_flavors
-UNION ALL
-SELECT 'flavors_inserted', count(*) FROM inserted_flavors
-UNION ALL
-SELECT 'flavors_fixed', count(*) FROM fix_missing_categories;
+SELECT 'level3', count(*) FROM ins_l3;
 

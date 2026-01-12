@@ -27,7 +27,6 @@ export default async function KaffeesPage({ params }: { params: Promise<{ locale
 
   return (
     <PageContainer>
-      <h1 className="mb-8">{t('coffees')}</h1>
       <CoffeeListClient initialCoffees={coffees} regions={regions} brewMethods={brewMethods} />
     </PageContainer>
   );

@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { logger } from '@/lib/logger';
 
-type FlavorHint = {
+type FlavorCategoryHint = {
   name: string;
-  category?: string | null;
+  level: number;
   parent?: string | null;
+  grandParent?: string | null;
 };
 
 type GenerateRequest = {
@@ -16,14 +17,14 @@ type GenerateRequest = {
   varietal?: string;
   short_description?: string;
   description?: string;
-  availableFlavorNotes?: FlavorHint[];
-  target_field?: 'short_description' | 'description' | 'flavor_notes';
+  availableFlavorCategories?: FlavorCategoryHint[];
+  target_field?: 'short_description' | 'description' | 'flavor_categories';
 };
 
 type GenerateResponse = {
   short_description?: string;
   description?: string;
-  flavor_notes?: string[];
+  flavor_categories?: string[];
 };
 
 function buildPrompt(payload: GenerateRequest) {
@@ -40,23 +41,26 @@ function buildPrompt(payload: GenerateRequest) {
     .join(' | ');
 
   const flavorText =
-    payload.availableFlavorNotes
+    payload.availableFlavorCategories
       ?.map((f) => {
-        const path = f.parent ? `${f.parent} > ${f.category || ''}` : f.category || '';
-        return path ? `${f.name} (${path.trim()})` : f.name;
+        const parts: string[] = [];
+        if (f.grandParent) parts.push(f.grandParent);
+        if (f.parent) parts.push(f.parent);
+        parts.push(f.name);
+        return parts.length > 1 ? `${f.name} (${parts.slice(0, -1).join(' > ')})` : f.name;
       })
       .join(', ') || '';
 
   return [
     'Erstelle Inhalte für genau ein Textfeld.',
     'Sprache: Deutsch.',
-    'Antworte nur mit JSON: "short_description" (<=200 Zeichen), "description" (3-5 Sätze), "flavor_notes" (Array der Namen).',
-    'Verwende ausschließlich die bereitgestellte Geschmacksnoten-Liste.',
+    'Antworte nur mit JSON: "short_description" (<=200 Zeichen), "description" (3-5 Sätze), "flavor_categories" (Array der Namen).',
+    'Verwende ausschließlich die bereitgestellte Aromakategorien-Liste.',
     payload.target_field
       ? `Fülle NUR das Feld "${payload.target_field}". Alle anderen Felder leer lassen.`
       : 'Fülle alle Felder.',
     `Kaffeeinfos: ${lines || 'keine'}`,
-    `Verfügbare Geschmacksnoten: ${flavorText}`,
+    `Verfügbare Aromakategorien: ${flavorText}`,
   ].join('\n');
 }
 
@@ -121,7 +125,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       short_description: parsed.short_description?.trim(),
       description: parsed.description?.trim(),
-      flavor_notes: parsed.flavor_notes || [],
+      flavor_categories: parsed.flavor_categories || [],
     });
   } catch (error: any) {
     logger.error('KI-Generator fehlgeschlagen', {

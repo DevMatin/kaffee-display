@@ -10,7 +10,7 @@ export default createMiddleware({
 
 export const config = {
   matcher: [
-    '/((?!api|_next|.*\\..*|favicon.ico|manifest.webmanifest|service-worker.js|admin|offline).*)',
+    '/((?!api|_next|.*\\..*|favicon.ico|manifest.webmanifest|service-worker.js|custom-sw.js|admin|offline).*)',
   ],
 };
 

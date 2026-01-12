@@ -63,63 +63,86 @@ export function CoffeeListClient({ initialCoffees, regions, brewMethods }: Coffe
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-      <div className="space-y-6">
-        <FilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedRegion={selectedRegion}
-          onRegionChange={setSelectedRegion}
-          selectedRoast={selectedRoast}
-          onRoastChange={setSelectedRoast}
-          selectedBrewMethod={selectedBrewMethod}
-          onBrewMethodChange={setSelectedBrewMethod}
-          regions={regions}
-          brewMethods={brewMethods}
-        />
+    <>
+      <div className="grid gap-8 lg:grid-cols-[2fr_1fr] lg:items-start" id="coffee-grid">
+        <div className="space-y-6">
+          <FilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedRegion={selectedRegion}
+            onRegionChange={setSelectedRegion}
+            selectedRoast={selectedRoast}
+            onRoastChange={setSelectedRoast}
+            selectedBrewMethod={selectedBrewMethod}
+            onBrewMethodChange={setSelectedBrewMethod}
+            regions={regions}
+            brewMethods={brewMethods}
+          />
 
-        {recommended.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--color-espresso)]">{t('recommended')}</h3>
-              <button
-                type="button"
-                onClick={() => setRecommended([])}
-                className="text-sm text-[var(--color-brown)] underline"
-              >
-                {t('reset')}
-              </button>
+          {recommended.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[var(--color-espresso)]">{t('recommended')}</h3>
+                <button
+                  type="button"
+                  onClick={() => setRecommended([])}
+                  className="text-sm text-[var(--color-brown)] underline"
+                >
+                  {t('reset')}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {recommended.map((coffee) => (
+                  <CoffeeCard key={coffee.id} coffee={coffee} />
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {recommended.map((coffee) => (
-                <CoffeeCard key={coffee.id} coffee={coffee} />
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        {filteredCoffees.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-[var(--color-text-secondary)]">{t('noneFound')}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {filteredCoffees.map((coffee) => (
-              <CoffeeCard key={coffee.id} coffee={coffee} />
-            ))}
-          </div>
-        )}
+          {filteredCoffees.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-[var(--color-text-secondary)]">{t('noneFound')}</p>
+            </div>
+          ) : (
+            <>
+              {filteredCoffees.length >= 2 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {filteredCoffees.slice(0, 2).map((coffee) => (
+                    <CoffeeCard key={coffee.id} coffee={coffee} />
+                  ))}
+                </div>
+              )}
+              {filteredCoffees.length === 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {filteredCoffees.map((coffee) => (
+                    <CoffeeCard key={coffee.id} coffee={coffee} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="flex h-full">
+          <CoffeeChat
+            preferences={{
+              regionId: selectedRegion || undefined,
+              roastLevel: selectedRoast || undefined,
+              brewMethodId: selectedBrewMethod || undefined,
+            }}
+            onRecommendations={handleRecommendations}
+          />
+        </div>
       </div>
 
-      <CoffeeChat
-        preferences={{
-          regionId: selectedRegion || undefined,
-          roastLevel: selectedRoast || undefined,
-          brewMethodId: selectedBrewMethod || undefined,
-        }}
-        onRecommendations={handleRecommendations}
-      />
-    </div>
+      {filteredCoffees.length > 2 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+          {filteredCoffees.slice(2).map((coffee) => (
+            <CoffeeCard key={coffee.id} coffee={coffee} />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

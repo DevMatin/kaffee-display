@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 import { logger } from './logger';
 import type {
   Region,
@@ -8,6 +8,7 @@ import type {
   CoffeeImage,
   FlavorCategory,
   FlavorWheelNode,
+  RoastLevel,
 } from './types';
 
 // Basic helper to pick translation without enforcing field types
@@ -290,6 +291,63 @@ export async function getBrewMethods(locale = 'de'): Promise<BrewMethod[]> {
   }
 }
 
+export async function getRoastLevels(locale = 'de'): Promise<RoastLevel[]> {
+  const startTime = performance.now();
+  try {
+    logger.debug('Fetching all roast levels');
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client
+      .from('roast_levels')
+      .select(`
+        *,
+        translations:roast_levels_translations(locale, name, description)
+      `)
+      .order('name', { ascending: true });
+
+    if (error) {
+      const errorCode = (error as any)?.code || '';
+      const errorMessage = error.message || '';
+      if (errorCode === '42P01' || errorMessage.includes('does not exist') || (errorMessage.includes('relation') && errorMessage.includes('does not exist'))) {
+        logger.debug('Roast levels table does not exist yet, returning empty array');
+        return [];
+      }
+      if (errorCode === '42501' || errorMessage.includes('permission denied')) {
+        logger.debug('Permission denied for roast_levels table, returning empty array');
+        return [];
+      }
+      logger.error('Error fetching roast levels', error);
+      return [];
+    }
+
+    const duration = Math.round(performance.now() - startTime);
+    logger.query('roast_levels', 'select', duration, { count: data?.length || 0 });
+
+    return (
+      data?.map((level: any) => {
+        const translation = pickTranslation(level.translations, locale);
+        return {
+          ...level,
+          name: translation?.name || level.name,
+          description: translation?.description || null,
+        };
+      }) || []
+    );
+  } catch (error: any) {
+    const errorCode = error?.code || '';
+    const errorMessage = error?.message || '';
+    if (errorCode === '42P01' || errorMessage.includes('does not exist') || (errorMessage.includes('relation') && errorMessage.includes('does not exist'))) {
+      logger.debug('Roast levels table does not exist yet, returning empty array');
+      return [];
+    }
+    if (errorCode === '42501' || errorMessage.includes('permission denied')) {
+      logger.debug('Permission denied for roast_levels table, returning empty array');
+      return [];
+    }
+    logger.error('Failed to fetch roast levels', error);
+    return [];
+  }
+}
+
 export async function getCoffees(locale = 'de'): Promise<Coffee[]> {
   const startTime = performance.now();
   try {
@@ -300,14 +358,23 @@ export async function getCoffees(locale = 'de'): Promise<Coffee[]> {
         `
         *,
         translations:coffees_translations(locale, name, short_description, description),
+        roast_level:roast_levels(*, translations:roast_levels_translations(locale, name, description)),
         region:regions(*, translations:regions_translations(locale, region_name, description)),
         coffee_regions(
           region:regions(*, translations:regions_translations(locale, region_name, description))
         ),
         coffee_flavor_notes(
-          flavor_note:flavor_notes(
+          flavor_category:flavor_categories(
             *,
-            translations:flavor_notes_translations(locale, name, description)
+            translations:flavor_categories_translations(locale, name),
+            parent:flavor_categories(
+              *,
+              translations:flavor_categories_translations(locale, name),
+              parent:flavor_categories(
+                *,
+                translations:flavor_categories_translations(locale, name)
+              )
+            )
           )
         ),
         coffee_brew_methods(
@@ -341,6 +408,15 @@ export async function getCoffees(locale = 'de'): Promise<Coffee[]> {
     const coffees: Coffee[] =
       data?.map((coffee: any) => {
         const coffeeTranslation = pickTranslation(coffee.translations, locale);
+        
+        const roastLevel = coffee.roast_level
+          ? {
+              ...coffee.roast_level,
+              name: pickTranslation(coffee.roast_level.translations, locale)?.name || coffee.roast_level.name,
+              description: pickTranslation(coffee.roast_level.translations, locale)?.description || null,
+            }
+          : null;
+
         const region = coffee.region
           ? {
               ...coffee.region,
@@ -363,12 +439,30 @@ export async function getCoffees(locale = 'de'): Promise<Coffee[]> {
             };
           }).filter(Boolean) || [];
 
-        const flavorNotes =
+        const flavorCategories =
           coffee.coffee_flavor_notes?.map((cfn: any) => {
-            const note = cfn.flavor_note;
-            if (!note) return null;
-            const t = pickTranslation(note.translations, locale);
-            return { ...note, name: t?.name || note.name, description: t?.description ?? note.description };
+            const category = cfn.flavor_category;
+            if (!category) return null;
+            const t = pickTranslation(category.translations, locale);
+            const localizedCategory = { ...category, name: t?.name || category.name };
+            
+            if (localizedCategory.parent) {
+              const parentT = pickTranslation(localizedCategory.parent.translations, locale);
+              localizedCategory.parent = {
+                ...localizedCategory.parent,
+                name: parentT?.name || localizedCategory.parent.name,
+              };
+              
+              if (localizedCategory.parent.parent) {
+                const grandParentT = pickTranslation(localizedCategory.parent.parent.translations, locale);
+                localizedCategory.parent.parent = {
+                  ...localizedCategory.parent.parent,
+                  name: grandParentT?.name || localizedCategory.parent.parent.name,
+                };
+              }
+            }
+            
+            return localizedCategory;
           }).filter(Boolean) || [];
 
         const brewMethods =
@@ -408,9 +502,10 @@ export async function getCoffees(locale = 'de'): Promise<Coffee[]> {
           name: coffeeTranslation?.name || coffee.name,
           short_description: coffeeTranslation?.short_description ?? coffee.short_description,
           description: coffeeTranslation?.description ?? coffee.description,
+          roast_level_obj: roastLevel,
           region,
           regions,
-          flavor_notes: flavorNotes,
+          flavor_categories: flavorCategories,
           brew_methods: brewMethods,
           processing_methods: processingMethods,
           varietals,
@@ -438,14 +533,23 @@ export async function getCoffeeBySlug(slug: string, locale = 'de'): Promise<Coff
         `
         *,
         translations:coffees_translations(locale, name, short_description, description),
+        roast_level:roast_levels(*, translations:roast_levels_translations(locale, name, description)),
         region:regions(*, translations:regions_translations(locale, region_name, description)),
         coffee_regions(
           region:regions(*, translations:regions_translations(locale, region_name, description))
         ),
         coffee_flavor_notes(
-          flavor_note:flavor_notes(
+          flavor_category:flavor_categories(
             *,
-            translations:flavor_notes_translations(locale, name, description)
+            translations:flavor_categories_translations(locale, name),
+            parent:flavor_categories(
+              *,
+              translations:flavor_categories_translations(locale, name),
+              parent:flavor_categories(
+                *,
+                translations:flavor_categories_translations(locale, name)
+              )
+            )
           )
         ),
         coffee_brew_methods(
@@ -482,6 +586,15 @@ export async function getCoffeeBySlug(slug: string, locale = 'de'): Promise<Coff
     }
 
     const translation = pickTranslation(data.translations, locale);
+    
+    const roastLevel = data.roast_level
+      ? {
+          ...data.roast_level,
+          name: pickTranslation(data.roast_level.translations, locale)?.name || data.roast_level.name,
+          description: pickTranslation(data.roast_level.translations, locale)?.description || null,
+        }
+      : null;
+
     const region = data.region
       ? {
           ...data.region,
@@ -495,6 +608,7 @@ export async function getCoffeeBySlug(slug: string, locale = 'de'): Promise<Coff
       name: translation?.name || data.name,
       short_description: translation?.short_description ?? data.short_description,
       description: translation?.description ?? data.description,
+      roast_level_obj: roastLevel,
       region,
       regions:
         data.coffee_regions?.map((cr: any) => {
@@ -503,12 +617,30 @@ export async function getCoffeeBySlug(slug: string, locale = 'de'): Promise<Coff
           const t = pickTranslation(r.translations, locale);
           return { ...r, region_name: t?.region_name || r.region_name, description: t?.description ?? r.description };
         }).filter(Boolean) || [],
-      flavor_notes:
+      flavor_categories:
         data.coffee_flavor_notes?.map((cfn: any) => {
-          const note = cfn.flavor_note;
-          if (!note) return null;
-          const t = pickTranslation(note.translations, locale);
-          return { ...note, name: t?.name || note.name, description: t?.description ?? note.description };
+          const category = cfn.flavor_category;
+          if (!category) return null;
+          const t = pickTranslation(category.translations, locale);
+          const localizedCategory = { ...category, name: t?.name || category.name };
+          
+          if (localizedCategory.parent) {
+            const parentT = pickTranslation(localizedCategory.parent.translations, locale);
+            localizedCategory.parent = {
+              ...localizedCategory.parent,
+              name: parentT?.name || localizedCategory.parent.name,
+            };
+            
+            if (localizedCategory.parent.parent) {
+              const grandParentT = pickTranslation(localizedCategory.parent.parent.translations, locale);
+              localizedCategory.parent.parent = {
+                ...localizedCategory.parent.parent,
+                name: grandParentT?.name || localizedCategory.parent.parent.name,
+              };
+            }
+          }
+          
+          return localizedCategory;
         }).filter(Boolean) || [],
       brew_methods:
         data.coffee_brew_methods?.map((cbm: any) => {
@@ -534,6 +666,8 @@ export async function getCoffeeBySlug(slug: string, locale = 'de'): Promise<Coff
       images: data.coffee_images || [],
     };
 
+    coffee.roast_level_obj = roastLevel;
+
     const duration = Math.round(performance.now() - startTime);
     logger.query('coffees', 'selectBySlug', duration, { slug });
 
@@ -554,14 +688,23 @@ export async function getCoffeeById(id: string, locale = 'de'): Promise<Coffee |
         `
         *,
         translations:coffees_translations(locale, name, short_description, description),
+        roast_level:roast_levels(*, translations:roast_levels_translations(locale, name, description)),
         region:regions(*, translations:regions_translations(locale, region_name, description)),
         coffee_regions(
           region:regions(*, translations:regions_translations(locale, region_name, description))
         ),
         coffee_flavor_notes(
-          flavor_note:flavor_notes(
+          flavor_category:flavor_categories(
             *,
-            translations:flavor_notes_translations(locale, name, description)
+            translations:flavor_categories_translations(locale, name),
+            parent:flavor_categories(
+              *,
+              translations:flavor_categories_translations(locale, name),
+              parent:flavor_categories(
+                *,
+                translations:flavor_categories_translations(locale, name)
+              )
+            )
           )
         ),
         coffee_brew_methods(
@@ -598,6 +741,15 @@ export async function getCoffeeById(id: string, locale = 'de'): Promise<Coffee |
     }
 
     const translation = pickTranslation(data.translations, locale);
+    
+    const roastLevel = data.roast_level
+      ? {
+          ...data.roast_level,
+          name: pickTranslation(data.roast_level.translations, locale)?.name || data.roast_level.name,
+          description: pickTranslation(data.roast_level.translations, locale)?.description || null,
+        }
+      : null;
+
     const region = data.region
       ? {
           ...data.region,
@@ -611,6 +763,7 @@ export async function getCoffeeById(id: string, locale = 'de'): Promise<Coffee |
       name: translation?.name || data.name,
       short_description: translation?.short_description ?? data.short_description,
       description: translation?.description ?? data.description,
+      roast_level_obj: roastLevel,
       region,
       regions:
         data.coffee_regions?.map((cr: any) => {
@@ -619,12 +772,30 @@ export async function getCoffeeById(id: string, locale = 'de'): Promise<Coffee |
           const t = pickTranslation(r.translations, locale);
           return { ...r, region_name: t?.region_name || r.region_name, description: t?.description ?? r.description };
         }).filter(Boolean) || [],
-      flavor_notes:
+      flavor_categories:
         data.coffee_flavor_notes?.map((cfn: any) => {
-          const note = cfn.flavor_note;
-          if (!note) return null;
-          const t = pickTranslation(note.translations, locale);
-          return { ...note, name: t?.name || note.name, description: t?.description ?? note.description };
+          const category = cfn.flavor_category;
+          if (!category) return null;
+          const t = pickTranslation(category.translations, locale);
+          const localizedCategory = { ...category, name: t?.name || category.name };
+          
+          if (localizedCategory.parent) {
+            const parentT = pickTranslation(localizedCategory.parent.translations, locale);
+            localizedCategory.parent = {
+              ...localizedCategory.parent,
+              name: parentT?.name || localizedCategory.parent.name,
+            };
+            
+            if (localizedCategory.parent.parent) {
+              const grandParentT = pickTranslation(localizedCategory.parent.parent.translations, locale);
+              localizedCategory.parent.parent = {
+                ...localizedCategory.parent.parent,
+                name: grandParentT?.name || localizedCategory.parent.parent.name,
+              };
+            }
+          }
+          
+          return localizedCategory;
         }).filter(Boolean) || [],
       brew_methods:
         data.coffee_brew_methods?.map((cbm: any) => {
@@ -649,6 +820,8 @@ export async function getCoffeeById(id: string, locale = 'de'): Promise<Coffee |
         }).filter(Boolean) || [],
       images: data.coffee_images || [],
     };
+
+    coffee.roast_level_obj = roastLevel;
 
     const duration = Math.round(performance.now() - startTime);
     logger.query('coffees', 'selectById', duration, { id });
@@ -679,23 +852,8 @@ export async function getFlavorWheel(locale = 'de'): Promise<FlavorWheelNode> {
       throw categoriesError;
     }
 
-    const { data: notes, error: notesError } = await supabase
-      .from('flavor_notes')
-      .select(`
-        *,
-        translations:flavor_notes_translations(locale, name, description)
-      `)
-      .not('category_id', 'is', null)
-      .order('name', { ascending: true });
-
-    if (notesError) {
-      logger.error('Error fetching flavor notes', notesError);
-      throw notesError;
-    }
-
     const categoriesMap = new Map<string, FlavorCategory>();
     const categoriesByParent = new Map<string | null, FlavorCategory[]>();
-    const notesByCategory = new Map<string, FlavorNote[]>();
 
     categories?.forEach((cat: any) => {
       const translation = pickTranslation(cat.translations, locale);
@@ -708,39 +866,12 @@ export async function getFlavorWheel(locale = 'de'): Promise<FlavorWheelNode> {
       categoriesByParent.get(parentKey)!.push(localized);
     });
 
-    notes?.forEach((note: any) => {
-      const translation = pickTranslation(note.translations, locale);
-      const localized = {
-        ...note,
-        name: translation?.name || note.name,
-        description: translation?.description ?? note.description,
-      };
-      if (note.category_id) {
-        if (!notesByCategory.has(note.category_id)) {
-          notesByCategory.set(note.category_id, []);
-        }
-        notesByCategory.get(note.category_id)!.push(localized as FlavorNote);
-      }
-    });
-
     function buildNode(category: FlavorCategory): FlavorWheelNode {
       const children: FlavorWheelNode[] = [];
       
       const subCategories = categoriesByParent.get(category.id) || [];
       subCategories.forEach((subCat) => {
         children.push(buildNode(subCat));
-      });
-
-      const categoryNotes = notesByCategory.get(category.id) || [];
-      categoryNotes.forEach((note) => {
-        children.push({
-          id: note.id,
-          name: note.name,
-          label: note.name,
-          level: 3,
-          color: note.color_hex || undefined,
-          value: 1,
-        });
       });
 
       return {
@@ -763,8 +894,7 @@ export async function getFlavorWheel(locale = 'de'): Promise<FlavorWheelNode> {
 
     const duration = Math.round(performance.now() - startTime);
     logger.query('flavor_wheel', 'select', duration, { 
-      categories: categories?.length || 0,
-      notes: notes?.length || 0 
+      categories: categories?.length || 0
     });
 
     return rootNode;

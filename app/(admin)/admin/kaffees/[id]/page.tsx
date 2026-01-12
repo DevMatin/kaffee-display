@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { getCoffeeById, getRegions, getFlavorNotes, getBrewMethods } from '@/lib/queries';
+import { getCoffeeById, getRegions, getFlavorCategories, getBrewMethods, getRoastLevels } from '@/lib/queries';
 import { CoffeeForm } from '@/components/admin/CoffeeForm';
 import { getTranslations } from 'next-intl/server';
 
@@ -14,16 +14,18 @@ export default async function EditCoffeePage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  const [regions, flavorNotes, brewMethods] = await Promise.all([
+  const [regions, flavorCategories, brewMethods, roastLevelsResult] = await Promise.all([
     getRegions(),
-    getFlavorNotes(),
+    getFlavorCategories(),
     getBrewMethods(),
+    getRoastLevels().catch(() => []),
   ]);
+  const roastLevels = Array.isArray(roastLevelsResult) ? roastLevelsResult : [];
 
   return (
     <PageContainer>
       <h1 className="mb-8">{t('pages.editCoffee')}</h1>
-      <CoffeeForm coffee={coffee} regions={regions} flavorNotes={flavorNotes} brewMethods={brewMethods} />
+      <CoffeeForm coffee={coffee} regions={regions} flavorCategories={flavorCategories} brewMethods={brewMethods} roastLevels={roastLevels} />
     </PageContainer>
   );
 }

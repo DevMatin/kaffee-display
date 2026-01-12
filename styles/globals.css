@@ -140,4 +140,28 @@ p {
   background-color: var(--color-hover);
 }
 
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brown) var(--color-cream);
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: var(--color-cream);
+  border-radius: 5px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: var(--color-brown);
+  border-radius: 5px;
+  border: 2px solid var(--color-cream);
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brown-dark);
+}
+
 

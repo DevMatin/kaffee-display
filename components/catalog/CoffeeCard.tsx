@@ -32,7 +32,7 @@ export function CoffeeCard({ coffee }: CoffeeCardProps) {
 
   return (
     <Link href={`/kaffees/${coffee.slug || coffee.id}`}>
-      <Card className="h-full">
+      <Card className="h-full flex flex-col">
         {coffee.image_url ? (
           <div className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden">
             <SafeImage
@@ -48,28 +48,34 @@ export function CoffeeCard({ coffee }: CoffeeCardProps) {
             <span className="text-[var(--color-text-muted)] text-sm">{t('noImage')}</span>
           </div>
         )}
-        <h3 className="mb-2">{coffee.name}</h3>
-        {coffee.short_description && (
-          <p className="text-[var(--color-text-secondary)] text-sm mb-4 line-clamp-2">
-            {coffee.short_description}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center mb-2">
           {coffee.roast_level && (
             <Badge
               color="primary"
               style={{
                 backgroundColor: roastColor,
               }}
+              className="px-3 py-1 text-xs"
             >
               {getRoastLabel(coffee.roast_level)}
             </Badge>
           )}
           {coffee.region && (
-            <span className="text-sm text-[var(--color-text-muted)]">
+            <span className="text-xs text-[var(--color-text-secondary)]">
               {coffee.region.region_name}, {coffee.region.country}
             </span>
           )}
+        </div>
+        <h3 className="mb-2">{coffee.name}</h3>
+        {coffee.short_description && (
+          <p className="text-[var(--color-text-secondary)] text-sm mb-4 line-clamp-2">
+            {coffee.short_description}
+          </p>
+        )}
+        <div className="mt-auto pt-2">
+          <span className="inline-block rounded-full bg-[var(--color-brown)] text-white px-6 py-2 text-sm font-medium hover:bg-[var(--color-brown-dark)] transition-all">
+            Mehr erfahren
+          </span>
         </div>
       </Card>
     </Link>

@@ -13,6 +13,7 @@ export function AdminSidebar() {
     { href: '/admin', label: t('dashboard'), icon: '📊' },
     { href: '/admin/kaffees', label: t('coffees'), icon: '☕' },
     { href: '/admin/regionen', label: t('regions'), icon: '🌍' },
+    { href: '/admin/roestgrade', label: 'Röstgrade', icon: '🔥' },
     { href: '/admin/aromen', label: t('flavors'), icon: '🌸' },
     { href: '/admin/aromen/kategorien', label: t('flavorCategories'), icon: '🗂️' },
     { href: '/admin/zubereitungen', label: t('brewMethods'), icon: '🍵' },

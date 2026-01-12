@@ -57,6 +57,9 @@ export interface Coffee {
   short_description: string | null;
   description: string | null;
   roast_level: string | null;
+  roast_level_id: string | null;
+  roast_level_old?: string | null;
+  roast_level_obj?: RoastLevel | null;
   processing_method: string | null;
   varietal: string | null;
   altitude_min: number | null;
@@ -83,6 +86,7 @@ export interface Coffee {
   region?: Region | null;
   regions?: Region[];
   flavor_notes?: FlavorNote[];
+  flavor_categories?: FlavorCategory[];
   brew_methods?: BrewMethod[];
   processing_methods?: ProcessingMethod[];
   varietals?: Varietal[];
@@ -110,7 +114,7 @@ export interface CoffeeRegion {
 export interface CoffeeFlavorNote {
   id: string;
   coffee_id: string;
-  flavor_id: string;
+  flavor_category_id: string;
 }
 
 export interface CoffeeBrewMethod {
@@ -194,6 +198,23 @@ export interface ProcessingMethodTranslation {
 export interface VarietalTranslation {
   id?: string;
   varietal_id: string;
+  locale: string;
+  name: string | null;
+  description: string | null;
+}
+
+export interface RoastLevel {
+  id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  translations?: RoastLevelTranslation[];
+}
+
+export interface RoastLevelTranslation {
+  id?: string;
+  roast_level_id?: string;
   locale: string;
   name: string | null;
   description: string | null;

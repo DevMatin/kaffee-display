@@ -37,18 +37,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const messages = await getMessages({ locale });
   
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <div className="flex min-h-screen">
-            <AdminSidebar />
-            <main className="flex-1 bg-[var(--color-background)]">
-              {children}
-            </main>
-          </div>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <div className="flex min-h-screen">
+        <AdminSidebar />
+        <main className="flex-1 bg-[var(--color-background)]">
+          {children}
+        </main>
+      </div>
+    </NextIntlClientProvider>
   );
 }
 

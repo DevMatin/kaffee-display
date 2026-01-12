@@ -44,9 +44,13 @@ export default async function CoffeeDetailPage({
     dark: 'var(--color-dark-roast)',
   };
 
-  const roastColor = coffee.roast_level ? roastColors[coffee.roast_level.toLowerCase()] : 'var(--color-brown)';
+  const roastLevelName = coffee.roast_level_obj?.name || (typeof coffee.roast_level === 'string' ? coffee.roast_level : coffee.roast_level_old || '');
+  const roastLevelKey = coffee.roast_level_obj?.name?.toLowerCase() || (typeof coffee.roast_level === 'string' ? coffee.roast_level.toLowerCase() : coffee.roast_level_old?.toLowerCase() || '');
+  
+  const roastColor = roastLevelKey ? roastColors[roastLevelKey] : 'var(--color-brown)';
   
   const getRoastLabel = (roastLevel: string) => {
+    if (!roastLevel) return '';
     const key = roastLevel.toLowerCase();
     if (key === 'light' || key === 'medium' || key === 'dark') {
       return filterT(key);
@@ -104,18 +108,31 @@ export default async function CoffeeDetailPage({
             <p className="text-[var(--color-text-secondary)] mb-6">{coffee.short_description}</p>
           )}
 
-          {coffee.roast_level && (
-            <div className="mb-6">
+          {(coffee.roast_level_obj || coffee.roast_level) && (
+            <Card padding="md" className="mb-6">
               <span className="text-sm text-[var(--color-text-muted)] block mb-2">{t('roastLevel')}</span>
-              <Badge
-                color="primary"
-                style={{
-                  backgroundColor: roastColor,
-                }}
-              >
-                {getRoastLabel(coffee.roast_level)}
-              </Badge>
-            </div>
+              <span className="font-medium">
+                {coffee.roast_level_obj?.name || getRoastLabel(coffee.roast_level || '')}
+              </span>
+              {coffee.roast_level_obj?.description && (
+                <p className="text-sm text-[var(--color-text-secondary)] mt-4">
+                  {coffee.roast_level_obj.description}
+                </p>
+              )}
+              {!coffee.roast_level_obj?.description && roastLevelKey && (() => {
+                let roastExplanation = '';
+                if (roastLevelKey === 'light') roastExplanation = detailT('roastLight');
+                else if (roastLevelKey === 'medium') roastExplanation = detailT('roastMedium');
+                else if (roastLevelKey === 'dark') roastExplanation = detailT('roastDark');
+                else roastExplanation = detailT('roastGeneric');
+                
+                return (
+                  <p className="text-sm text-[var(--color-text-secondary)] mt-4">
+                    {roastExplanation}
+                  </p>
+                );
+              })()}
+            </Card>
           )}
 
           <div className="space-y-4 mb-6">
@@ -124,45 +141,42 @@ export default async function CoffeeDetailPage({
               if (regions.length === 0) return null;
 
               return (
-                <>
-                  <Card padding="md">
-                    <span className="text-sm text-[var(--color-text-muted)] block mb-2">{t('region')}</span>
-                    <RegionMap
-                      regions={regions.map((r) => ({
-                        latitude: r.latitude,
-                        longitude: r.longitude,
-                        regionName: r.region_name,
-                        country: r.country,
-                      }))}
-                    />
-                  </Card>
+                <Card padding="md">
+                  <span className="text-sm text-[var(--color-text-muted)] block mb-2">{t('region')}</span>
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    {regions.map((region, idx) => (
+                      <span key={region.id || idx} className="inline-flex items-center gap-2">
+                        <Link
+                          href={`/regionen/${region.id}`}
+                          className="inline-flex items-center gap-2 text-[var(--color-text-primary)] hover:text-[var(--color-espresso)] transition-colors"
+                        >
+                          {region.emblem_url && (
+                            <SafeImage
+                              src={region.emblem_url}
+                              alt={region.region_name}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          )}
+                          <span className="font-medium">
+                            {region.region_name}
+                          </span>
+                        </Link>
+                        {idx < regions.length - 1 && <span className="text-[var(--color-text-muted)]">,</span>}
+                      </span>
+                    ))}
+                  </div>
 
-                  {regions.map((region, idx) => (
-                    <Card key={region.id || idx} padding="md">
-                      <Link
-                        href={`/regionen/${region.id}`}
-                        className="inline-flex items-center gap-2 text-[var(--color-text-primary)] hover:text-[var(--color-espresso)] transition-colors mb-4"
-                      >
-                        {region.emblem_url && (
-                          <SafeImage
-                            src={region.emblem_url}
-                            alt={region.region_name}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )}
-                        <span className="font-medium">
-                          {region.region_name}, {region.country}
-                        </span>
-                      </Link>
-
-                      {region.description && (
-                        <p className="text-sm text-[var(--color-text-secondary)] mt-2">{region.description}</p>
-                      )}
-                    </Card>
-                  ))}
-                </>
+                  <RegionMap
+                    regions={regions.map((r) => ({
+                      latitude: r.latitude,
+                      longitude: r.longitude,
+                      regionName: r.region_name,
+                      country: r.country,
+                    }))}
+                  />
+                </Card>
               );
             })()}
 
@@ -170,67 +184,66 @@ export default async function CoffeeDetailPage({
               <AltitudeDisplay altitudeMin={coffee.altitude_min} altitudeMax={coffee.altitude_max} />
             )}
 
-            {(coffee.processing_methods && coffee.processing_methods.length > 0
-              ? coffee.processing_methods
-              : coffee.processing_method
-              ? [{ name: coffee.processing_method, description: null }]
-              : []
-            ).map((method: any, index: number) => (
-              <Card key={index} padding="md">
-                <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('processing')}</span>
-                <p className="text-[var(--color-text-primary)] font-medium mb-2">{method.name}</p>
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  {method.description ||
-                    (method.name.toLowerCase().includes('gewaschen') && detailT('processingWashed')) ||
-                    ((method.name.toLowerCase().includes('natürlich') ||
-                      method.name.toLowerCase().includes('natural')) &&
-                      detailT('processingNatural')) ||
-                    (method.name.toLowerCase().includes('honey') && detailT('processingHoney')) ||
-                    detailT('processingGeneric')}
-                </p>
-              </Card>
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(coffee.processing_methods && coffee.processing_methods.length > 0
+                ? coffee.processing_methods
+                : coffee.processing_method
+                ? [{ name: coffee.processing_method, description: null }]
+                : []
+              ).map((method: any, index: number) => (
+                <Card key={index} padding="md">
+                  <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('processing')}</span>
+                  <p className="text-[var(--color-text-primary)] font-medium mb-2">{method.name}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">
+                    {method.description ||
+                      (method.name.toLowerCase().includes('gewaschen') && detailT('processingWashed')) ||
+                      ((method.name.toLowerCase().includes('natürlich') ||
+                        method.name.toLowerCase().includes('natural')) &&
+                        detailT('processingNatural')) ||
+                      (method.name.toLowerCase().includes('honey') && detailT('processingHoney')) ||
+                      detailT('processingGeneric')}
+                  </p>
+                </Card>
+              ))}
 
-            {(coffee.varietals && coffee.varietals.length > 0
-              ? coffee.varietals
-              : coffee.varietal
-              ? coffee.varietal.split(',').map((v: string) => ({ name: v.trim(), description: null }))
-              : []
-            ).map((varietal: any, index: number) => (
-              <Card key={index} padding="md">
-                <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('varietal')}</span>
-                <p className="text-[var(--color-text-primary)] font-medium mb-2">{varietal.name}</p>
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  {varietal.description || detailT('processingGeneric')}
-                </p>
-              </Card>
-            ))}
+              {(coffee.varietals && coffee.varietals.length > 0
+                ? coffee.varietals
+                : coffee.varietal
+                ? coffee.varietal.split(',').map((v: string) => ({ name: v.trim(), description: null }))
+                : []
+              ).map((varietal: any, index: number) => (
+                <Card key={index} padding="md">
+                  <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('varietal')}</span>
+                  <p className="text-[var(--color-text-primary)] font-medium mb-2">{varietal.name}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">
+                    {varietal.description || detailT('processingGeneric')}
+                  </p>
+                </Card>
+              ))}
+            </div>
           </div>
 
-          {coffee.flavor_notes && coffee.flavor_notes.length > 0 && (
-            <div className="mb-6">
+          {coffee.flavor_categories && coffee.flavor_categories.length > 0 && (
+            <Card padding="md" className="mb-6">
               <span className="text-sm text-[var(--color-text-muted)] block mb-3">{detailT('flavorNotes')}</span>
               <div className="flex flex-wrap gap-2 mb-6">
-                {coffee.flavor_notes.map((note) => (
-                  <Badge key={note.id} color="secondary">
-                    {note.name}
+                {coffee.flavor_categories.map((category) => (
+                  <Badge key={category.id} color="secondary">
+                    {category.name}
                   </Badge>
                 ))}
               </div>
-              <Card padding="md">
-                <h3 className="text-lg font-semibold mb-4">{detailT('flavorWheel')}</h3>
-                <FlavorWheelSection
-                  data={flavorWheelData}
-                  highlightedNotes={coffee.flavor_notes.map((note) => note.name)}
-                  highlightedNoteIds={coffee.flavor_notes.map((note) => note.id)}
-                />
-              </Card>
-            </div>
+              <FlavorWheelSection
+                data={flavorWheelData}
+                highlightedNotes={coffee.flavor_categories.map((category) => category.name)}
+                highlightedNoteIds={coffee.flavor_categories.map((category) => category.id)}
+              />
+            </Card>
           )}
 
           {coffee.brew_methods && coffee.brew_methods.length > 0 && (
-            <div>
-              <span className="text-sm text-[var(--color-text-muted)] block mb-3">{detailT('recommendedBrew')}</span>
+            <Card padding="md">
+              <span className="text-sm text-[var(--color-text-muted)] block mb-2">{detailT('recommendedBrew')}</span>
               <div className="flex flex-wrap gap-2">
                 {coffee.brew_methods.map((method) => (
                   <Badge key={method.id} color="accent">
@@ -238,7 +251,7 @@ export default async function CoffeeDetailPage({
                   </Badge>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
         </div>
       </div>
